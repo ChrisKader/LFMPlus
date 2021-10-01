@@ -1,4 +1,3 @@
-rm .\addon\ -r -fo
 mkdir .\addon\LFM+
 mkdir .\addon\LFM+\locale
 Copy-Item -Path ".\*" -Include *.lua, *.xml, *.toc -Destination ".\addon\LFM+\"
