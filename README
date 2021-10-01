@@ -1,0 +1,25 @@
+<p>This addon enhances the default LFG UI for Mythic+ listings with more details and provides a few quality-of-life improvements.</p>
+<p>Items in RED are still a WIP.</p>
+<p><strong>Added UI Elements</strong>&nbsp;</p>
+<ul>
+<li><span style="color: #ff0000;">Filter applicants to your group while also being able to view filtered applicants and declining each one with one button.</span></li>
+<li>Filter out listings with no open spot for your current role.</li>
+<li>Filter group listings by Mythic Plus Rating (Useful for hiding LFG spam listings).</li>
+<li><span style="color: #ff0000;">Filter group applicants by class and/or Mythic Plus Rating.</span></li>
+<li>Filter results by dungeon while also being able to use the normal search box for key level.</li>
+</ul>
+<p>&nbsp;</p>
+<p><strong>Default UI Enhancements</strong></p>
+<ul>
+<li>Groups with friends and guild members will always show, regardless of filter settings.</li>
+<li>The dungeon for the key currently present in your bag will be automatically selected from the dropped down when creating a group.</li>
+<li>The class of each role currently in the listings group is represented as a bar below the respective icon.</li>
+<li>The dungeon rating of the group leader added to the listing.</li>
+<li>Server name added to the listing.</li>
+<li><span style="color: #ff0000;">Specify players/realms to be flagged or filtered out.</span></li>
+<li>Dungeon names shortened to save space.</li>
+<li>Double-Click on listings to apply.</li>
+</ul>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><span style="text-decoration: underline;"><strong>This addon does NOT use rating data from the RaiderIO addon and does NOT require the RaiderIO addon to be installed.</strong></span></p>
