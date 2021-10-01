@@ -1073,7 +1073,7 @@ do
         if not name and menuList then
             for i = 1, #menuList do
                 local whisperButton = menuList[i]
-                if whisperButton and (whisperButton.text == _G.WHISPER_LEADER or whisperButton.text == _G.WHISPER) then
+                if whisperButton and (whisperButton.text == WHISPER_LEADER or whisperButton.text == WHISPER) then
                     name, realm = LFMPlus:GetNameRealm(whisperButton.arg1)
                     break
                 end

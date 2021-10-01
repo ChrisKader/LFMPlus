@@ -21,7 +21,7 @@
             - b: BETA
  #>
 $addonDir = ".\addon\$Env:addonName"
-$tag = $Env:ReleaseTag
+$tag = S
 if (($Env:GitHubRelease -eq "true")) {
     if ($tag -eq $null) {
         Write-Error -Message "No tag specified in $Env:ReleaseTag" -ErrorId "noEnvTag"
