@@ -4,7 +4,7 @@ local ns = select(2, ...) ---@type ns @The addon namespace.
 local L = LibStub("AceLocale-3.0"):NewLocale(addonName, "enUS", true)
 
 L["ActiveRoleTooltip"] = "Hide groups without current spec role available."
-L["LFMPlus"] = GREEN_FONT_COLOR:WrapTextInColorCode("LFM+")
+L["LFMPlus"] = "LFM+"
 L["Enable LFMPlus"] = "Enable LFMP+"
 L["Role"] = true
 L["Enable or disable LFMPlus"] = "Enable or disable LFM+"
