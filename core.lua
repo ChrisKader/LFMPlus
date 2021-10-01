@@ -56,7 +56,7 @@ ns.realmFilterPresets = {
             ["Barthilas"] = true,
             ["Dreadmaul"] = true,
             ["Frostmourne"] = true,
-            ["Gundrak"] = true,
+            ["Gundrak"] = true, 
             ["Jubei'Thos"] = true,
             ["Thaurissan"] = true,
         }
