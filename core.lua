@@ -5,37 +5,37 @@ local LFMPlus = LFMPlus
 
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, false)
 -- TODO:
---   Check active role filter?
+--   Add UI setting for enableLFGDropdown
 local db
 local defaults = {
     global = {
+        --Control Panel Defaults
         enabled = true,
-        showClassColors = false,
+        showLeaderScore = true,
+        showClassColors = true,
+        showRealmName = true,
+        shortenActivityName = true,
         alwaysShowFriends = true,
-        showRealmName = false,
-        shortenActivityName = false,
-        showLeaderScore = false,
-        activeRoleFilter = false,
-        lfgListingDoubleClick = false,
-        autoFocusSignUp = false,
+        lfgListingDoubleClick = true,
         signupOnEnter = false,
-        hideAppViewerOverlay = false,
+        autoFocusSignUp = false,
         alwaysShowRoles = false,
-        ratingFilter = false,
-        ratingFilterMin = 0,
-        ratingFilterMax = 0,
-        dungeonFilter = false,
+        hideAppViewerOverlay = false,
         enableLFGDropdown = true,
+        excludePlayerList = true,
         flagPlayer = false,
         filterPlayer = false,
-        flagPlayerList = {
-            -- [ignoreName] = "Note"
-        },
-        excludePlayerList = true,
+        flagPlayerList = {},
         excludeRealmList = true,
         flagRealm = false,
         filterRealm = false,
         flagRealmList = {},
+        activeRoleFilter = false,
+        --UI Defaults
+        ratingFilter = false,
+        ratingFilterMin = 0,
+        ratingFilterMax = 0,
+        dungeonFilter = false,
     }
 }
 ns.CONSTANTS = {
@@ -111,15 +111,16 @@ local options = {
     type = "group",
     name = L["LFMPlus"],
     desc = L["LFMPlus"],
+    get = function(info) return db[info.arg] end,
     args = {
         enabled = {
             type = "toggle",
             name = L["Enable LFMPlus"],
             desc = L["Enable or disable LFMPlus"],
             order = 1,
-            get = function(info) return db.enabled end,
+            arg = "enabled",
             set = function(info, v)
-                db.enabled = v
+                db[info.arg] = v
                 if v then LFMPlus:Enable() else LFMPlus:Disable() end
             end,
             disabled = false,
@@ -132,8 +133,8 @@ local options = {
             order = 10,
             get = function(info) return db[info.arg] end,
             set = function(info, v)
-                local arg = info.arg
-                db[arg] = v
+                db[info.arg] = v
+                LFMPlus:FilterChanged()
             end,
             disabled = function() return not db.enabled end,
             args = {
@@ -170,11 +171,11 @@ local options = {
                     descStyle = "inline",
                     arg = "showRealmName",
                     set = function(info, v)
-                        local arg = info.arg
-                        db[arg] = v
+                        db[info.arg] = v
                         if v and not db.shortenActivityName then
                             db.shortenActivityName = true
                         end
+                        LFMPlus:FilterChanged()
                     end,
                     order = 30,
                 },
@@ -206,8 +207,8 @@ local options = {
             order = 20,
             get = function(info) return db[info.arg] end,
             set = function(info, v)
-                local arg = info.arg
-                db[arg] = v
+                db[info.arg] = v
+                LFMPlus:FilterChanged()
             end,
             disabled = function() return not db.enabled end,
             args = {
@@ -241,7 +242,7 @@ local options = {
                 alwaysShowRoles = {
                     type = "toggle",
                     width = "full",
-                    name = L["Always Listing Roles"],
+                    name = L["Always Show Listing Roles"],
                     desc = L["Toggle the ability to show what slots have filled for an LFG listing, even if you have applied for it."],
                     descStyle = "inline",
                     arg = "alwaysShowRoles",
@@ -278,8 +279,7 @@ local options = {
                             desc = L["Toggle the ability to indicate if the realm of an LFG listing or applicant is listed below."],
                             arg = "flagRealm",
                             set = function(info, v)
-                                local arg = info.arg
-                                db[arg] = v
+                                db[info.arg] = v
                                 if v then
                                     db.filterRealm = not v
                                 end
@@ -294,11 +294,11 @@ local options = {
                             desc = L["Toggle the ability to filter out LFG listings or applicants if they belong to a realm listed below."],
                             arg = "filterRealm",
                             set = function(info, v)
-                                local arg = info.arg
-                                db[arg] = v
+                                db[info.arg] = v
                                 if v then
                                     db.flagRealm = not v
                                 end
+                                LFMPlus:FilterChanged()
                             end,
                             order = 20,
                         },
@@ -327,6 +327,7 @@ local options = {
                                     end
                                 end
                                 db[info.arg] = newTbl
+                                LFMPlus:FilterChanged()
                             end,
                             arg = "flagRealmList",
                             order = 30,
@@ -351,6 +352,7 @@ local options = {
                                 if ns.realmFilterPresets[value] then
                                     db[info.arg] = ns.realmFilterPresets[value].realms
                                 end
+                                LFMPlus:FilterChanged()
                             end,
                             order = 40,
                         },
@@ -378,11 +380,11 @@ local options = {
                             desc = L["Toggle the ability to indicate if the player of an LFG listing or applicant is listed below."],
                             arg = "flagPlayer",
                             set = function(info, v)
-                                local arg = info.arg
-                                db[arg] = v
+                                db[info.arg] = v
                                 if v then
                                     db.filterPlayer = not v
                                 end
+                                LFMPlus:FilterChanged()
                             end,
                             order = 10,
                         },
@@ -394,11 +396,11 @@ local options = {
                             desc = L["Toggle the ability to filter out LFG listings or applicants if they belong to a player listed below."],
                             arg = "filterPlayer",
                             set = function(info, v)
-                                local arg = info.arg
-                                db[arg] = v
+                                db[info.arg] = v
                                 if v then
                                     db.flagPlayer = not v
                                 end
+                                LFMPlus:FilterChanged()
                             end,
                             order = 20,
                         },
@@ -427,6 +429,7 @@ local options = {
                                     end
                                 end
                                 db[info.arg] = newTbl
+                                LFMPlus:FilterChanged()
                             end,
                             arg = "flagPlayerList",
                             order = 30,
@@ -533,17 +536,20 @@ function LFMPlus:toggleElementVisbility()
         if LFMPlus.visibility == "SEARCH" then
             for k,v in pairs(LFMPlusFrame.frames.search) do
                 v:Show();
+                LFMPlus:FilterChanged()
             end
         end
         if LFMPlus.visibility == "APP" then
             for k,v in pairs(LFMPlusFrame.frames.app) do
                 v:Show();
+                LFMPlus:FilterChanged()
             end
         end
     end
     if LFMPlus.visibility == "HIDE" then
         for k,v in pairs(LFMPlusFrame.frames.all) do
             v:Hide();
+            LFMPlus:FilterChanged()
         end
     end
 end
@@ -1143,11 +1149,10 @@ do
 end
 
 function LFMPlus:OnInitialize()
-    self.db = LibStub("AceDB-3.0"):New(ns.friendlyName .. "DB", defaults, true)
-    db = self.db.global
+    db = LibStub("AceDB-3.0"):New(ns.friendlyName .. "DB", defaults, true).global
 
     -- Register options table and slash command
-    LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable(addonName, options)
+    LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable(addonName, options, true)
     self:RegisterChatCommand("lfm", function()
         LibStub("AceConfigDialog-3.0"):Open(addonName)
 
