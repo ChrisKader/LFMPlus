@@ -659,7 +659,7 @@ roleCheckbox:SetScript("OnLeave", hideTooltip)
 roleCheckbox:SetScript("OnClick",function(self)
     db.activeRoleFilter = self:GetChecked()
     ns.DebugLog("Role filter enabled: ".. tostring(db.activeRoleFilter))
-    LFMPlus:FilterChanged()
+    LFMPlus:RefreshResults()
 end)
 
 LFMPlusFrame.frames.filterScore = LFMPlusFrame_filterScore
@@ -672,7 +672,7 @@ scoreCheckbox:SetScript("OnClick",function(self)
     db.ratingFilter = self:GetChecked()
     LFMPlusFrame_filterScoreMin:SetEnable(db.ratingFilter)
     ns.DebugLog("Rating filter enabled: ".. tostring(db.ratingFilter))
-    LFMPlus:FilterChanged()
+    LFMPlus:RefreshResults()
 end)
 
 LFMPlusFrame.frames.filterDungeon_DropDown = LFMPlusFrame_filterDungeon_DropDown
@@ -687,10 +687,20 @@ dungeonCheckbox:SetScript("OnClick",function(self)
     db.dungeonFilter = self:GetChecked()
     LFMPlusFrame_filterDungeon_DropDown:SetEnable(db.dungeonFilter)
     ns.DebugLog("Dungeon filter enabled: ".. tostring(db.ratingFilter))
-    LFMPlus:FilterChanged()
+    LFMPlus:RefreshResults()
 end)
 
+LFMPlusFrame.frames.results = LFMPlusFrame_results
 LFMPlusFrame.frames.filterScoreMin = LFMPlusFrame_filterScoreMin
+
+function LFMPlus:GetDungeonInfo(activityId)
+    if ns.DUNGEON_LIST[activityId] then
+        return true
+    else
+        return false
+    end
+end
+
 function LFMPlus:GetDungeonList()
     local activityIDs = C_LFGList.GetAvailableActivities(2, nil, 1)
     local mapChallengeModeIDs = C_ChallengeMode.GetMapTable()
@@ -727,7 +737,7 @@ function LFMPlusFrame_filterScoreMin:SetDisplayValue(s,value)
     s:sliderSetValue(value);
     s.High:SetText(formatMPlusRating(value));
     db.ratingFilterMin = value
-    LFMPlus:FilterChanged()
+    LFMPlus:RefreshResults()
     s.noclick = false;
 end
 function LFMPlusFrame_filterScoreMin:SetEnable(value)
@@ -777,12 +787,15 @@ table.insert(LFMPlusFrame.frames.search, scoreCheckbox);
 table.insert(LFMPlusFrame.frames.search, LFMPlusFrame.frames.filterScoreMin)
 table.insert(LFMPlusFrame.frames.search, dungeonCheckbox)
 table.insert(LFMPlusFrame.frames.search, LFMPlusFrame.frames.filterDungeon_DropDown)
+table.insert(LFMPlusFrame.frames.search,LFMPlusFrame.frames.results)
 for k,v in pairs(LFMPlusFrame.frames.search) do
     table.insert(LFMPlusFrame.frames.all,v);
 end
 
 local SortSearchResults = function(results)
-
+    if LFGListFrame.CategorySelection.selectedCategory ~= 2 then
+        return
+    end
     local roleRemainingKeyLookup = {
         ["TANK"] = "TANK_REMAINING",
         ["HEALER"] = "HEALER_REMAINING",
@@ -815,7 +828,8 @@ local SortSearchResults = function(results)
                 local filterRealm = db.filterRealm and LFMPlus:checkRealm(realmName) or false
                 local filterPlayer = db.filterPlayer and LFMPlus:checkPlayer(leaderName) or false
                 local filterDungeon = (db.dungeonFilter and LFMPlusFrame_filterDungeon_DropDown:GetDungeonCount() > 0) and not filteredActivityIDs[searchResultInfo.activityID] or false
-                if(filterRole or filterRating or filterRealm or filterDungeon or filterPlayer or filterDungeonActivity)  then
+                local filterActivity = db.dungeonFilter and not ns.DUNGEON_LIST[searchResultInfo.activityID] or false
+                if(filterRole or filterRating or filterRealm or filterDungeon or filterPlayer or filterActivity)  then
                     addFilteredId(LFGListFrame.SearchPanel, searchResultID)
                 end
             else
@@ -865,10 +879,6 @@ local SortSearchResults = function(results)
         return searchResultID1 < searchResultID2
     end
 
-    if LFGListFrame.CategorySelection.selectedCategory ~= 2 then
-        return
-    end
-
     if (#results > 0) then
         for _, id in ipairs(results) do
             FilterSearchResults(id)
@@ -889,7 +899,9 @@ local SortSearchResults = function(results)
     if #results > 0 then
         LFGListSearchPanel_UpdateResults(LFGListFrame.SearchPanel)
     end
-
+    local shown = LFGListFrame.activePanel.results and #LFGListFrame.activePanel.results or 0
+    local total = LFGListFrame.activePanel.totalResults and LFGListFrame.activePanel.totalResults or 0
+    LFMPlusFrame_resultsText:SetText(L["Showing "] ..  shown .. L[" of "] .. total)
 end
 
 function LFMPlus:AddToFilter(name,realm)
@@ -906,9 +918,6 @@ local SearchEntryUpdate = function(entry, ...)
 
     local resultID = entry.resultID
     local resultInfo = C_LFGList.GetSearchResultInfo(resultID)
-    if not ns.DUNGEON_LIST[resultInfo.activityID] then
-        return
-    end
     for i = 1, 5 do
         local texture = "tex" .. i
         if (entry.DataDisplay.Enumerate[texture]) then
@@ -918,7 +927,6 @@ local SearchEntryUpdate = function(entry, ...)
 
     if db.showClassColors then
         local numMembers = resultInfo.numMembers
-        --entry.DataDisplay:SetPoint("RIGHT", entry.DataDisplay:GetParent(), "RIGHT", 0, 0)
         local orderIndexes = {}
 
         for i = 1, numMembers do
@@ -963,7 +971,7 @@ local SearchEntryUpdate = function(entry, ...)
             entry.DataDisplay:Show()
         end
     end
-    if db.showLeaderScore and not resultInfo.isDelisted then
+    if db.showLeaderScore and not resultInfo.isDelisted and ns.DUNGEON_LIST[resultInfo.activityID] then
         local formattedLeaderScore = formatMPlusRating(resultInfo.leaderOverallDungeonScore or 0)
         entry.Name:SetText(formattedLeaderScore .. " " .. entry.Name:GetText())
         entry.ActivityName:SetWordWrap(false)
@@ -974,7 +982,7 @@ local SearchEntryUpdate = function(entry, ...)
         entry.ActivityName:SetWordWrap(false)
     end
 
-    if db.showRealmName then
+    if db.showRealmName and ns.DUNGEON_LIST[resultInfo.activityID] then
         local leaderName = resultInfo.leaderName
         if (leaderName) then
             local realmName = leaderName:find("-") ~= nil and string.sub(leaderName, leaderName:find("-") + 1, string.len(leaderName))
@@ -1147,7 +1155,13 @@ do
     }
     LibDropDownExtension:RegisterEvent("OnShow OnHide", OnToggle, 1, dropdown)
 end
-
+function LFMPlus:RefreshResults()
+    if LFGListFrame.activePanel:IsShown() then
+        if LFGListFrame.CategorySelection.selectedCategory == 2 then
+            LFGListSearchPanel_UpdateResultList(LFGListFrame.activePanel);
+        end
+    end
+end
 function LFMPlus:OnInitialize()
     db = LibStub("AceDB-3.0"):New(ns.friendlyName .. "DB", defaults, true).global
 
@@ -1159,7 +1173,16 @@ function LFMPlus:OnInitialize()
         end)
     LibStub("AceConfigDialog-3.0"):AddToBlizOptions(addonName, addonName)
     LFMPlusFrame_filterActiveRole:SetChecked(db.activeRoleFilter)
-
+    LFMPlusFrame_results:ClearAllPoints()
+    LFMPlusFrame_results:SetWidth(100)
+    LFMPlusFrame_results:SetHeight(20)
+    LFMPlusFrame_results:SetPoint("BOTTOM",LFGListFrame.SearchPanel.SearchBox,"TOP",0,5)
+    LFMPlusFrame_resultsText = LFMPlusFrame_results:CreateFontString("LFMPlusFrame_resultsText", "ARTWORK", "GameFontNormal")
+    LFMPlusFrame_resultsText:ClearAllPoints()
+    LFMPlusFrame_resultsText:SetWidth(100)
+    LFMPlusFrame_resultsText:SetHeight(20)
+    LFMPlusFrame_resultsText:SetPoint("TOP",LFMPlusFrame_results,"TOP")
+    LFMPlusFrame_resultsText:SetText(L["Showing "] ..  0 .. L[" of "] .. 0)
     LFMPlusFrame_filterScoreMin.sliderSetValue = LFMPlusFrame_filterScoreMin.SetValue;
     LFMPlusFrame_filterScoreMin:sliderSetValue(db.ratingFilterMin)
     LFMPlusFrame_filterScoreMin:SetMinMaxValues(ns.CONSTANTS.ratingMin, ns.CONSTANTS.ratingMax);
@@ -1196,7 +1219,7 @@ function LFMPlus:OnInitialize()
                     UIDropDownMenu_SetText(dungeonDropdown, LFMPlusFrame_filterDungeon_DropDown:GetDungeonCount())
                     UIDropDownMenu_JustifyText(dungeonDropdown, "LEFT")
                     UIDropDownMenu_SetWidth(dungeonDropdown, 35)
-                    LFMPlus:FilterChanged()
+                    LFMPlus:RefreshResults()
                 end
                 UIDropDownMenu_AddButton(dungeonEntry)
             end
@@ -1244,6 +1267,7 @@ function LFMPlus:Enable()
     end
     LFMPlus:toggleElementVisbility()
     ns.Init = true
+    LFMPlus:RefreshResults()
 end
 
 function LFMPlus:Disable()

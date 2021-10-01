@@ -66,3 +66,5 @@ L["The current realm list will be completely REPLACED by the list chosen."] = tr
 L["Toggle the visbility of the leaders realm.\nShorten Dungeon Names will be enabled as well."] = true
 L["If enabled, LFM+ will always show groups or applicants if they include Friends or Guildies"] = true
 L["Friends or Guildies"] = true
+L["Showing "] = true
+L[" of "] = true

@@ -6,6 +6,8 @@
             <Anchor point="TOPLEFT"/>
         </Anchors>
         <Frames>
+            <Frame hidden="true" name="$parent_results">
+            </Frame>
             <CheckButton hidden="true" name="$parent_filterActiveRole" inherits="UICheckButtonTemplate">
                 <Anchors>
                     <Anchor point="TOPLEFT"/>
