@@ -1,3 +1,4 @@
 - More improvements to release automation.
     - createZip.ps1
 - Readme Updates.
+- Updates to fix references to _G
