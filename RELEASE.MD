@@ -1,1 +1,2 @@
-Another release test. Sorry!
+- More improvements to release automation.
+    - createZip.ps1
