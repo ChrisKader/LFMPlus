@@ -1,11 +1,8 @@
 local addonName = ... ---@type string @The name of the addon.
 local ns = select(2, ...) ---@type ns @The addon namespace.
-LFMPlus = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0")
-local LFMPlus = LFMPlus
+local LFMPlus = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0")
 
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, false)
--- TODO:
---   Add UI setting for enableLFGDropdown
 local db
 local defaults = {
     global = {
@@ -104,9 +101,7 @@ local function formatMPlusRating(score)
     local formattedScore = C_ChallengeMode.GetDungeonScoreRarityColor(score):WrapTextInColorCode(shortScore)
     return formattedScore
 end
-local examples = {
-    ["leader"] = ""
-}
+
 local options = {
     type = "group",
     name = L["LFMPlus"],
@@ -343,7 +338,7 @@ local options = {
                             confirmText = L["The current realm list will be completely REPLACED by the list chosen."],
                             values = function()
                                 local rtnVal = {}
-                                for k,v in pairs(ns.realmFilterPresets) do
+                                for k,_ in pairs(ns.realmFilterPresets) do
                                     rtnVal[k] = k
                                 end
                                 return rtnVal
@@ -462,7 +457,7 @@ local showTooltip = function(self)
     end
 end
 
-local hideTooltip = function(self)
+local hideTooltip = function()
     if GameTooltip:IsShown() then
         GameTooltip:Hide();
     end
@@ -534,20 +529,20 @@ end
 function LFMPlus:toggleElementVisbility()
     if db.enabled then
         if LFMPlus.visibility == "SEARCH" then
-            for k,v in pairs(LFMPlusFrame.frames.search) do
+            for _,v in pairs(LFMPlusFrame.frames.search) do
                 v:Show();
                 LFMPlus:FilterChanged()
             end
         end
         if LFMPlus.visibility == "APP" then
-            for k,v in pairs(LFMPlusFrame.frames.app) do
+            for _,v in pairs(LFMPlusFrame.frames.app) do
                 v:Show();
                 LFMPlus:FilterChanged()
             end
         end
     end
     if LFMPlus.visibility == "HIDE" then
-        for k,v in pairs(LFMPlusFrame.frames.all) do
+        for _,v in pairs(LFMPlusFrame.frames.all) do
             v:Hide();
             LFMPlus:FilterChanged()
         end
@@ -631,18 +626,6 @@ _G["LFGListFrame"].SearchPanel:HookScript("OnHide", LFMPlusFrame.HookHandler)
 _G["LFGListFrame"].ApplicationViewer:HookScript("OnShow", LFMPlusFrame.HookHandler)
 _G["LFGListFrame"].ApplicationViewer:HookScript("OnHide", LFMPlusFrame.HookHandler)
 
---[[     for frameName,events in pairs(ns.HOOK_FRAMES) do
-    for key,event in pairs(events) do
-        getglobal(frameName):HookScript(event, LFMPlusFrame:HookHandler(event, frameName))
-    end
-end ]]
-
-LFMPlusFrame:SetScript("OnEvent", function(self, event, ...)
-    if ns.EVENTS[event] then
-        --ns.DebugLog(event, "EVENT")
-    end
-end)
-
 -- Register Events
 for k,v in pairs(ns.EVENTS) do
     if v then
@@ -718,7 +701,7 @@ function LFMPlus:GetDungeonList()
         })
     end
     for _,activityID in pairs(activityIDs) do
-        local fullName, shortName, categoryID, groupID, itemLevel, filters, minLevel, maxPlayers, displayType, orderIndex, useHonorLevel, showQuickJoinToast, isMythicPlus, isRatedPvpActivity, isCurrentRaidActivity = C_LFGList.GetActivityInfo(activityID)
+        local fullName, _, _, _, _, _, _, _, _, _, _, _, isMythicPlus, _, _ = C_LFGList.GetActivityInfo(activityID)
         if isMythicPlus then
             for _,challMap in pairs(mapChallengeModeInfo) do
                 if fullName:find(challMap.name) then
@@ -756,7 +739,7 @@ function LFMPlusFrame_filterDungeon_DropDown:SetEnable(value)
 end
 function LFMPlusFrame_filterDungeon_DropDown:GetDungeonCount()
     local count = 0
-    for k,v in pairs(ns.DUNGEON_LIST) do
+    for _,v in pairs(ns.DUNGEON_LIST) do
         if v.checked then
             count = count + 1
         end
@@ -788,7 +771,7 @@ table.insert(LFMPlusFrame.frames.search, LFMPlusFrame.frames.filterScoreMin)
 table.insert(LFMPlusFrame.frames.search, dungeonCheckbox)
 table.insert(LFMPlusFrame.frames.search, LFMPlusFrame.frames.filterDungeon_DropDown)
 table.insert(LFMPlusFrame.frames.search,LFMPlusFrame.frames.results)
-for k,v in pairs(LFMPlusFrame.frames.search) do
+for _,v in pairs(LFMPlusFrame.frames.search) do
     table.insert(LFMPlusFrame.frames.all,v);
 end
 
@@ -883,10 +866,6 @@ local SortSearchResults = function(results)
         for _, id in ipairs(results) do
             FilterSearchResults(id)
         end
-        local shownResults = 0
-        if LFGListFrame.SearchPanel.totalResults then
-
-        end
 
         if (LFGListFrame.SearchPanel.filteredIDs) then
             filterTable(LFGListFrame.SearchPanel.results, LFGListFrame.SearchPanel.filteredIDs)
@@ -899,6 +878,7 @@ local SortSearchResults = function(results)
     if #results > 0 then
         LFGListSearchPanel_UpdateResults(LFGListFrame.SearchPanel)
     end
+
     local shown = LFGListFrame.activePanel.results and #LFGListFrame.activePanel.results or 0
     local total = LFGListFrame.activePanel.totalResults and LFGListFrame.activePanel.totalResults or 0
     LFMPlusFrame_resultsText:SetText(L["Showing "] ..  shown .. L[" of "] .. total)
@@ -910,7 +890,7 @@ function LFMPlus:AddToFilter(name,realm)
     end
 end
 
-local SearchEntryUpdate = function(entry, ...)
+local SearchEntryUpdate = function(entry)
 
     if (LFGListFrame.CategorySelection.selectedCategory ~= 2) or not db.enabled then
         return
@@ -1043,7 +1023,7 @@ do
     end
     function dropdown:OnEnable()
     end
-    function dropdown:Enable(state)
+    function dropdown:Enable()
         if self:IsEnabled() then
             return false
         end
@@ -1120,25 +1100,22 @@ do
     local selectedName, selectedRealm, selectedLevel
     local unitOptions
 
-    local function OnToggle(bdropdown, event, options, level, data)
+    local function OnToggle(bdropdown, event, opt)
         if event == "OnShow" then
             if not IsValidDropDown(bdropdown) then
                 return
             end
-            selectedName, selectedRealm, selectedLevel = GetNameRealmForDropDown(bdropdown)
-            --[[ if not selectedName or not util:IsMaxLevel(selectedLevel, true) then
-                return
-            end ]]
-            if not options[1] then
+            selectedName, selectedRealm, _ = GetNameRealmForDropDown(bdropdown)
+            if not opt[1] then
                 for i = 1, #unitOptions do
-                    options[i] = unitOptions[i]
+                    opt[i] = unitOptions[i]
                 end
                 return true
             end
         elseif event == "OnHide" then
-            if options[1] then
-                for i = #options, 1, -1 do
-                    options[i] = nil
+            if opt[1] then
+                for i = #opt, 1, -1 do
+                    opt[i] = nil
                 end
                 return true
             end
@@ -1214,7 +1191,7 @@ function LFMPlus:OnInitialize()
                 dungeonEntry.checked = function(s)
                     return ns.DUNGEON_LIST[s.value].checked == true
                 end
-                dungeonEntry.func = function (s,a1,a2,checked)
+                dungeonEntry.func = function (_,a1,_,_)
                     ns.DUNGEON_LIST[a1].checked = not ns.DUNGEON_LIST[a1].checked
                     UIDropDownMenu_SetText(dungeonDropdown, LFMPlusFrame_filterDungeon_DropDown:GetDungeonCount())
                     UIDropDownMenu_JustifyText(dungeonDropdown, "LEFT")
@@ -1240,25 +1217,25 @@ function LFMPlus:Enable()
         hooksecurefunc("LFGListSearchEntry_Update", SearchEntryUpdate)
 
         for i=1,#LFGListSearchPanelScrollFrame.buttons do
-            LFGListSearchPanelScrollFrame.buttons[i]:SetScript("OnDoubleClick", function(...)
+            LFGListSearchPanelScrollFrame.buttons[i]:SetScript("OnDoubleClick", function()
                 if db.lfgListingDoubleClick then
                     LFGListFrame.SearchPanel.SignUpButton:Click()
                 end
             end)
         end
-        LFGListApplicationDialogDescription.EditBox:HookScript("OnShow",function(...)
+        LFGListApplicationDialogDescription.EditBox:HookScript("OnShow",function()
             if db.autoFocusSignUp then
                 LFGListApplicationDialogDescription.EditBox:SetFocus()
             end
         end)
 
-        LFGListApplicationDialogDescription.EditBox:HookScript("OnEnterPressed",function(...)
+        LFGListApplicationDialogDescription.EditBox:HookScript("OnEnterPressed",function()
             if db.signupOnEnter then
                 LFGListApplicationDialog.SignUpButton:Click()
             end
         end)
 
-        LFGListFrame.ApplicationViewer.UnempoweredCover:HookScript("OnShow",function(...)
+        LFGListFrame.ApplicationViewer.UnempoweredCover:HookScript("OnShow",function()
             if db.hideAppViewerOverlay then
                 LFGListFrame.ApplicationViewer.UnempoweredCover:Hide()
             end

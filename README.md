@@ -23,7 +23,7 @@ Items marked with ❗ a WIP.
 **Bug List**
 - Scaling
 - Element placement (mainly in the upper left corner of the LFGListFrame window.)
-
+- Add UI setting for enableLFGDropdown
 
 **Release Automation**
 ------
