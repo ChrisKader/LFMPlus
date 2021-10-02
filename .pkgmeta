@@ -1,0 +1,29 @@
+package-as: LFM+
+
+externals:
+  LFM+/libs/LibStub: https://repos.curseforge.com/wow/libstub/trunk
+  LFM+/libs/CallbackHandler-1.0: https://repos.curseforge.com/wow/callbackhandler/trunk/CallbackHandler-1.0
+  LFM+/libs/AceConfig-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceConfig-3.0
+  LFM+/libs/AceConsole-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceConsole-3.0
+  LFM+/libs/AceGUI-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceGUI-3.0
+  LFM+/libs/AceEvent-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceEvent-3.0
+  LFM+/libs/AceAddon-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceAddon-3.0
+  LFM+/libs/AceDB-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceDB-3.0
+  LFM+/libs/AceLocale-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceLocale-3.0
+  LFM+/libs/LibDropDownExtension-1.0: https://github.com/Vladinator89/wow-addon-libdropdownextension
+  LFM+/libs/LibUIDropDownMenu: https://repos.wowace.com/wow/libuidropdownmenu/trunk
+
+enable-nolib-creation: no
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+ignore:
+  - README.md
+  - createZip.ps1
+  - logo.jpg
+  - screenshots
+  - .dev
+  - .release
+  - .gitignore
+  - .pkgmeta

@@ -23,7 +23,10 @@ Items marked with ❗ a WIP.
 **Bug List**
 - Scaling
 - Element placement (mainly in the upper left corner of the LFGListFrame window.)
+
+**TODO**
 - Add UI setting for enableLFGDropdown
+- Add option for viewing group listings while your current group is listed.
 
 **Release Automation**
 ------
