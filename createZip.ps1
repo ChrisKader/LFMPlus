@@ -21,7 +21,7 @@
             - b: BETA
  #>
 $addonDir = ".\addon\$Env:addonName"
-$tag = S
+$tag = "v1.0.8"
 if (($Env:GitHubRelease -eq "true")) {
     if ($tag -eq $null) {
         Write-Error -Message "No tag specified in $Env:ReleaseTag" -ErrorId "noEnvTag"
@@ -46,7 +46,7 @@ Compress-Archive ".\" "..\..\release\LFM+_$tag.zip" -Force | Out-Null
 $zipInfo = (Get-Item "..\..\release\LFM+_$tag.zip" | Select FullName).FullName
 Write-Information -Message "Created: $zipInfo" -InformationAction Continue
 if ($Env:GitHubRelease -eq "true" ) {
-    gh release create "$tag" --notes-file .\RELEASE.MD .\release\LFM+_"$tag".zip | Out-Null
+    gh release create "$tag" --notes-file ..\..\CHANGELOG.md ..\..\release\LFM+_"$tag".zip | Out-Null
     Write-Information -Message "Release: $tag created on GitHub" -InformationAction Continue
 } else {
     Write-Information -Message "Release: $tag NOT created on GitHub" -InformationAction Continue

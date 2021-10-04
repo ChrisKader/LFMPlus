@@ -1,52 +1,26 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
-    <Frame name="LFMPlusFrame" parent="GroupFinderFrame">
-        <Size x="203" y="120"/>
+    <Frame name="LFMPlusFrame" parent="GroupFinderFrame" inherits="BackdropTemplate">
+        <Size x="250" y="50"/>
+        <KeyValues>
+            <KeyValue key="backdropInfo" value="TOOLTIP_BACKDROP_STYLE_DEFAULT" type="global"/>
+            <KeyValue key="backdropColor" value="TOOLTIP_DEFAULT_BACKGROUND_COLOR" type="global"/>
+            <KeyValue key="backdropBorderColor" value="TOOLTIP_DEFAULT_COLOR" type="global"/>
+        </KeyValues>
         <Anchors>
-            <Anchor point="TOPLEFT"/>
+            <Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT"/>
         </Anchors>
         <Frames>
             <Frame hidden="true" name="$parent_results">
             </Frame>
-            <CheckButton hidden="true" name="$parent_filterActiveRole" inherits="UICheckButtonTemplate">
+            <Slider name="$parent_ScoreMin" inherits="OptionsSliderTemplate" valueStep="100" obeyStepOnDrag="true">
+                <Size x="126" y="17"/>
                 <Anchors>
-                    <Anchor point="TOPLEFT"/>
+                    <Anchor point="RIGHT" relativeTo="$parent" relativePoint="RIGHT">
+                    <Offset x="-10"/>
+                    </Anchor>
                 </Anchors>
-            </CheckButton>
-            <CheckButton hidden="true" name="$parent_filterDungeon" inherits="UICheckButtonTemplate">
-                <Anchors>
-                    <Anchor point="LEFT" relativeTo="$parent_filterActiveRoleText" relativePoint="RIGHT"/>
-                </Anchors>
-                <Frames>
-                    <Frame name="$parent_DropDown" inherits="UIDropDownMenuTemplate" hidden="true">
-                        <Anchors>
-                            <Anchor point="LEFT" relativeTo="$parentText" relativePoint="RIGHT">
-                                <Offset x="5"/>
-                            </Anchor>
-                        </Anchors>
-                    </Frame>
-                </Frames>
-            </CheckButton>
-            <CheckButton hidden="true" name="$parent_filterScore" inherits="UICheckButtonTemplate">
-                <Anchors>
-                    <Anchor point="TOP" relativeTo="$parent_filterActiveRole" relativePoint="BOTTOM"/>
-                </Anchors>
-                <Frames>
-                    <Slider name="$parentMin" inherits="OptionsSliderTemplate" valueStep="100" obeyStepOnDrag="true">
-                        <Size x="126" y="17"/>
-                        <Anchors>
-                            <Anchor point="LEFT" relativeTo="$parentText" relativePoint="RIGHT">
-                                <Offset x="5"/>
-                            </Anchor>
-                        </Anchors>
-                    </Slider>
-                    <!-- <Frame hidden="true" name="$parentMin" inherits="UIDropDownMenuTemplate">
-                        <Anchors>
-                            <Anchor point="LEFT" relativeTo="$parentText" relativePoint="RIGHT"/>
-                        </Anchors>
-                    </Frame> -->
-                </Frames>
-            </CheckButton>
+            </Slider>
         </Frames>
     </Frame>
 </Ui>
