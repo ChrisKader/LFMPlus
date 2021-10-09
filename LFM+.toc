@@ -21,5 +21,4 @@ libs\LibDropDownExtension-1.0\LibDropDownExtension.lua
 constants.lua
 
 locale\Locale-enUS.lua
-LFMPlus.xml
 core.lua

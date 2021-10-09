@@ -5,7 +5,8 @@ local AceGUI = LibStub("AceGUI-3.0")
 
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, false)
 local db
-
+local LFMPlusFrame = CreateFrame("Frame", "LFMPlusFrame", GroupFinderFrame, "TooltipBackdropTemplate")
+LFMPlusFrame:RegisterEvent("ADDON_LOADED");
 local defaults = {
     global = {
         --Control Panel Defaults
@@ -36,8 +37,16 @@ local defaults = {
         ratingFilterMin = 0,
         ratingFilterMax = 0,
         dungeonFilter = false,
+        realmList = {}
     }
 }
+
+ns.Init = false;
+
+LFMPlus.mPlusListed = false
+LFMPlus.mPlusSearch = false
+LFMPlus.isLeader = false
+LFMPlus.newEligibleApplicant = false
 
 ns.CONSTANTS = {
     ratingMin = 0,
@@ -48,9 +57,50 @@ ns.CONSTANTS = {
         HEALER = "groupfinder-icon-role-large-healer",
         NA = "communities-icon-redx"
     },
+    declineQueueMax = 15,
+    lengths = {
+        name = "%-12s",
+        server = "%-15s",
+        score = "%-4s"
+    },
+    mapInfo = {
+        [379] = { shortName = "PF", activityId = 691 },
+        [377] = { shortName = "DOS", activityId = 695 },
+        [378] = { shortName = "HOA", activityId = 699 },
+        [375] = { shortName = "MOTS", activityId = 703 },
+        [380] = { shortName = "SD", activityId = 705 },
+        [381] = { shortName = "SOA", activityId = 709 },
+        [376] = { shortName = "NW", activityId = 713 },
+        [382] = { shortName = "TOP", activityId = 717 },
+    },
+    actvityInfo = {
+        [691] = { shortName = "PF", mapId = 379 },
+        [695] = { shortName = "DOS", mapId = 377 },
+        [699] = { shortName = "HOA", mapId = 378 },
+        [703] = { shortName = "MOTS", mapId = 375 },
+        [705] = { shortName = "SD", mapId = 380 },
+        [709] = { shortName = "SOA", mapId = 381 },
+        [713] = { shortName = "NW", mapId = 376 },
+        [717] = { shortName = "TOP", mapId = 382 },
+    },
+    trackedEvents = {
+        ["LFG_LIST_AVAILABILITY_UPDATE"] = false,
+        ["LFG_LIST_ACTIVE_ENTRY_UPDATE"] = true,
+        ["LFG_LIST_ENTRY_CREATION_FAILED"] = false,
+        ["LFG_LIST_SEARCH_RESULTS_RECEIVED"] = false,
+        ["LFG_LIST_SEARCH_RESULT_UPDATED"] = false,
+        ["LFG_LIST_SEARCH_FAILED"] = false,
+        ["LFG_LIST_APPLICANT_LIST_UPDATED"] = false,
+        ["LFG_LIST_APPLICANT_UPDATED"] = true,
+        ["LFG_LIST_ENTRY_EXPIRED_TOO_MANY_PLAYERS"] = false,
+        ["LFG_LIST_ENTRY_EXPIRED_TIMEOUT"] = false,
+        ["LFG_LIST_APPLICATION_STATUS_UPDATED"] = false,
+        ["LFG_GROUP_DELISTED_LEADERSHIP_CHANGE"] = false,
+        ["PLAYER_SPECIALIZATION_CHANGED"] = true,
+        ["PARTY_LEADER_CHANGED"] = true,
+        ["GROUP_ROSTER_UPDATE"] = true,
+    },
 }
-
-ns.Init = false;
 
 ns.realmFilterPresets = {
     ["US - Oceanic"] = {
@@ -91,13 +141,11 @@ ns.DebugLog = function(text, type)
     end
 end
 
-ns.HooksRan = false
-
-ns.ScoreList = {100,200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2100,2200,2300,2400,2500,2600,2700,2800,2900,3000}
-
+ns.InitHooksRan = false
+ns.SecondHookRan = false
 --local LFMPlusFrame = LFMPlusFrame
 
-local function formatMPlusRating(score)
+function LFMPlus:formatMPlusRating(score)
     if not score or type(score) ~= "number" then
         score = 0
     end
@@ -106,6 +154,7 @@ local function formatMPlusRating(score)
     -- If the score is less than 1000, we simply store it in the shortScore variable.
 
     local shortScore = score >= 1000 and string.format("%3.2f", score/1000):sub(1,3) .. "k" or score
+    shortScore = string.format(ns.CONSTANTS.lengths.score,shortScore)
     local formattedScore = C_ChallengeMode.GetDungeonScoreRarityColor(score):WrapTextInColorCode(shortScore)
     return formattedScore
 end
@@ -153,7 +202,7 @@ local options = {
                 showLeaderScoreDesc = {
                     type = "description",
                     width = "full",
-                    name = "         " .. formatMPlusRating(2200) .. " " .. NORMAL_FONT_COLOR:WrapTextInColorCode("19 PF LUST"),
+                    name = "         " .. LFMPlus:formatMPlusRating(2200) .. " " .. NORMAL_FONT_COLOR:WrapTextInColorCode("19 PF LUST"),
                     fontSize = "medium",
                     order = 11,
                 },
@@ -444,9 +493,6 @@ local options = {
     }
 }
 
-LFMPlusFrame:RegisterEvent("ADDON_LOADED");
-
-    -- UTILITY FUNCTIONS --
 local showTooltip = function(self)
     if(self.tooltipText ~= nil) then
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
@@ -461,32 +507,60 @@ local hideTooltip = function()
     end
 end
 
-local function addFilteredId(self, id)
-    if (not self.filteredIDs) then
-        self.filteredIDs = {}
-    end
-    tinsert(self.filteredIDs, id)
-end
-
-local function filterTable(t, ids)
-    LFMPlusFrame.filteredIDs = {}
-    for _, id in ipairs(ids) do
-        for j = #t, 1, -1 do
-            if (t[j] == id) then
-                tremove(t, j)
-                tinsert(LFMPlusFrame.filteredIDs, id)
-                break
-            end
-        end
-    end
-end
-
 local function getIndex(values, val)
     local index = {}
     for k, v in pairs(values) do
         index[v] = k
     end
     return index[val]
+end
+
+function LFMPlus:removeFilteredId(id)
+    LFMPlusFrame.declineButtonInfo[id] = nil
+    LFMPlus.eligibleApplicantList[id] = nil
+
+    local idLoc = LFMPlusFrame:FindFilteredId(id)
+
+    if idLoc then
+        tremove(LFMPlusFrame.filteredIDs,idLoc)
+        if idLoc <= ns.CONSTANTS.declineQueueMax then
+            LFMPlusFrame:ShiftDeclineSelection(false)
+        end
+    end
+end
+
+function LFMPlus:removeExemptId(id)
+    LFMPlusFrame.exemptIDs[id] = nil
+end
+
+function LFMPlus:excludeFilteredId(id)
+    LFMPlus:removeFilteredId(id)
+    LFMPlusFrame.exemptIDs[id] = true
+end
+
+function LFMPlus:addFilteredId(s, id)
+    if (not s.filteredIDs) then
+        s.filteredIDs = {}
+    end
+
+    tinsert(s.filteredIDs, id)
+end
+
+function LFMPlus:filterTable(t, ids)
+    LFMPlusFrame.filteredIDs = {}
+    for _, id in ipairs(ids) do
+        for j = #t, 1, -1 do
+            if (t[j] == id) then
+                tremove(t, j)
+                tinsert(LFMPlusFrame.filteredIDs,id)
+                table.sort(LFMPlusFrame.filteredIDs)
+                if LFMPlus.mPlusListed then
+                    LFMPlus:RefreshDeclineButton()
+                end
+                break
+            end
+        end
+    end
 end
 
 function LFMPlus:checkRealm(realm)
@@ -511,83 +585,64 @@ function LFMPlus:checkPlayer(player)
     end
 end
 
-ns.DEBUG_ENABLED = false;
-
-ns.EVENTS = {
-    ["LFG_LIST_AVAILABILITY_UPDATE"] = false,
-    ["LFG_LIST_ACTIVE_ENTRY_UPDATE"] = false,
-    ["LFG_LIST_ENTRY_CREATION_FAILED"] = false,
-    ["LFG_LIST_SEARCH_RESULTS_RECEIVED"] = false,
-    ["LFG_LIST_SEARCH_RESULT_UPDATED"] = false,
-    ["LFG_LIST_SEARCH_FAILED"] = false,
-    ["LFG_LIST_APPLICANT_LIST_UPDATED"] = false,
-    ["LFG_LIST_APPLICANT_UPDATED"] = false,
-    ["LFG_LIST_ENTRY_EXPIRED_TOO_MANY_PLAYERS"] = false,
-    ["LFG_LIST_ENTRY_EXPIRED_TIMEOUT"] = false,
-    ["LFG_LIST_APPLICATION_STATUS_UPDATED"] = false,
-    ["LFG_GROUP_DELISTED_LEADERSHIP_CHANGE"] = false,
-    ["PLAYER_SPECIALIZATION_CHANGED"] = true,
-}
-
-LFMPlus.visibility = "HIDE"
-
-ns.ACTIVITY_INFO = {
-    [691] = { shortName = "PF", mapId = 379 },
-    [695] = { shortName = "DOS", mapId = 377 },
-    [699] = { shortName = "HOA", mapId = 378 },
-    [703] = { shortName = "MOTS", mapId = 375 },
-    [705] = { shortName = "SD", mapId = 380 },
-    [709] = { shortName = "SOA", mapId = 381 },
-    [713] = { shortName = "NW", mapId = 376 },
-    [717] = { shortName = "TOP", mapId = 382 },
-}
-
-LFMPlusFrame.frames = {
-    search = {},
-    app = {},
-    all = {}
-}
-
-LFMPlusFrame.filteredIDs = {}
-LFMPlusFrame.totalResults = 0
+ns.DEBUG_ENABLED = true;
 
 local function EventHandler(event, ...)
-    if event == "LFG_LIST_SEARCH_RESULT_UPDATED" then
-        if LFGListFrame.SearchPanel:IsShown() then
-            local resultID = ...
-            local _, appStatus, pendingStatus, appDuration = C_LFGList.GetApplicationInfo(resultID);
-            local searchResultInfo = C_LFGList.GetSearchResultInfo(resultID)
-            if ( appStatus == "none" and searchResultInfo.isDelisted ) then
-                for k,v in pairs(LFGListFrame.SearchPanel.results) do
-                    if v == resultID then
-                        tremove(LFGListFrame.SearchPanel.results, k)
-                        LFMPlus:RefreshResults()
-                    end
-                end
-            end
-        end
-    end
-
     if event == "PLAYER_SPECIALIZATION_CHANGED" then
         local unitId = ...
         if unitId == "player" then
             LFMPlusFrame.activeRoleFrame:UpdateRoleIcon()
         end
     end
-end
 
--- Register Events
-for k,v in pairs(ns.EVENTS) do
-    if v then
-        LFMPlus:RegisterEvent(k,EventHandler);
+    if event == "LFG_LIST_APPLICANT_UPDATED" then
+        local applicantID = ...
+        if applicantID then
+            local applicantInfo = C_LFGList.GetApplicantInfo(applicantID)
+            if applicantInfo then
+                if applicantInfo.applicationStatus ~= "applied" and applicantInfo.applicationStatus ~= "invited" and applicantInfo.applicationStatus ~= "inviteaccepted" then
+                    if (LFMPlusFrame:FindFilteredId(applicantID) or LFMPlusFrame.exemptIDs[applicantID] or LFMPlus.eligibleApplicantList[applicantID]) then
+                        LFMPlus:removeFilteredId(applicantID);
+                        LFMPlus:removeExemptId(applicantID);
+                        LFMPlus.eligibleApplicantList[applicantID] = nil
+                    end
+                end
+            end
+        end
+    end
+
+    if event == "LFG_LIST_ACTIVE_ENTRY_UPDATE" or event == "GROUP_ROSTER_UPDATE" then
+        local created = ...
+        if C_LFGList.HasActiveEntryInfo() then
+            local activeEntryInfo = C_LFGList.GetActiveEntryInfo();
+            if activeEntryInfo then
+                local _, _, _, _, _, _, _, _, _, _, _, _, isMythicPlusActivity = C_LFGList.GetActivityInfo(activeEntryInfo.activityID);
+                if isMythicPlusActivity then
+                    LFMPlus.mPlusListed = true
+                    LFMPlus.mPlusSearch = false
+                    LFMPlus:ToggleFrames("app","show")
+                end
+            else
+                LFMPlus:ClearValues()
+                LFMPlus:ToggleFrames("app","hide")
+            end
+        else
+            LFMPlus:ClearValues()
+            LFMPlus:ToggleFrames("app","hide")
+        end
+        LFMPlus.isLeader = UnitIsGroupLeader("player", LE_PARTY_CATEGORY_HOME)
+    end
+    --QueueStatusMinimapButton_SetGlowLock(self, lock, enabled, numPingSounds)
+    
+    if event == "PARTY_LEADER_CHANGED" then
+        LFMPlus.isLeader = UnitIsGroupLeader("player", LE_PARTY_CATEGORY_HOME)
     end
 end
 
-function LFMPlus:GetDungeonInfo(activityId)
-    if LFMPlusFrame.dungeonList[activityId] then
-        return true
-    else
-        return false
+-- Register Events
+for k,v in pairs(ns.CONSTANTS.trackedEvents) do
+    if v then
+        LFMPlus:RegisterEvent(k,EventHandler);
     end
 end
 
@@ -615,7 +670,7 @@ function LFMPlus:GetDungeonList()
                 if fullName:find(challMap.name) then
                     local dungeon = challMap
                     dungeon.activityID = activityID
-                    dungeon.shortName = ns.ACTIVITY_INFO[activityID].shortName or fullName
+                    dungeon.shortName = ns.CONSTANTS.actvityInfo[activityID].shortName or fullName
                     dungeon.checked = false
                     LFMPlusFrame.dungeonList[activityID] = dungeon
                     dropdownList[activityID] = challMap.name
@@ -624,7 +679,6 @@ function LFMPlus:GetDungeonList()
             end
         end
     end
-
     LFMPlusFrame.dungeonDropdownFrame:SetList(dropdownList);
 end
 
@@ -646,45 +700,15 @@ function LFMPlus:GetClassList()
     end
     db.classFilter = false
     LFMPlusFrame.classDropdownFrame:SetList(dropdownList)
-    LFMPlusFrame.classListLoaded = true
 end
 
-function LFMPlusFrame_ScoreMin:SetDisplayValue(value)
-    self.noclick = true;
-    self:SetValue(value);
-    self.Value:SetText(formatMPlusRating(value));
-    db.ratingFilterMin = value
-    db.ratingFilter = value > 0
-    LFMPlus:RefreshResults()
-    self.noclick = false;
-end
 
-function LFMPlusFrame_ScoreMin:SetEnable(value)
-    if value then
-        self:Enable()
-        self:SetAlpha(1)
-    else
-        self:Disable()
-        self:SetAlpha(.5)
-    end
-end
-
-LFMPlusFrame_ScoreMin:SetScript("OnValueChanged",function(s, value)
-    LFMPlusFrame_ScoreMin:SetDisplayValue(value)
-end)
-
-LFMPlusFrame_ScoreMin:SetBackdrop(LFMPlusFrame_ScoreMin:GetBackdrop())
-
-LFMPlusFrame.resultsFrame = LFMPlusFrame_results
-LFMPlusFrame.scoreMinFrame = LFMPlusFrame_ScoreMin
-
-LFMPlusFrame.frames.search["resultsFrame"] = true
-LFMPlusFrame.frames.search["scoreMinFrame"] = true
-LFMPlusFrame.frames.app["scoreMinFrame"] = true
 local SortSearchResults = function(results)
-    if LFGListFrame.CategorySelection.selectedCategory ~= 2 then
+
+    if not LFMPlus.mPlusSearch then
         return
     end
+
     local roleRemainingKeyLookup = {
         ["TANK"] = "TANK_REMAINING",
         ["HEALER"] = "HEALER_REMAINING",
@@ -705,12 +729,19 @@ local SortSearchResults = function(results)
 
     local FilterSearchResults = function(searchResultID)
         local searchResultInfo = C_LFGList.GetSearchResultInfo(searchResultID)
+
+        local _,realmName = LFMPlus:GetNameRealm(searchResultInfo.leaderName)
+
+        if not db.realmList[realmName] then
+            db.realmList[realmName] = true
+        end
+
         if searchResultInfo then
             -- Never filter listings with friends or guildies.
             local filterFriends = db.alwaysShowFriends and ((searchResultInfo.numBNetFriends or 0) + (searchResultInfo.numCharFriends or 0) + (searchResultInfo.numGuildMates or 0)) > 0 or false
-            if LFMPlus.visibility == "search" and (not filterFriends) then
-                local leaderName = searchResultInfo.leaderName or ""
-                local realmName = leaderName:find("-") ~= nil and string.sub(leaderName, leaderName:find("-") + 1, string.len(leaderName)) or GetRealmName()
+            if (not filterFriends) then
+                local leaderName,realmName = LFMPlus:GetNameRealm(searchResultInfo.leaderName)
+                --local realmName = leaderName:find("-") ~= nil and string.sub(leaderName, leaderName:find("-") + 1, string.len(leaderName)) or GetRealmName()
                 local filterRole = db.activeRoleFilter and not RemainingSlotsForLocalPlayerRole(searchResultID) or false
                 local filterRating = db.ratingFilter and not (searchResultInfo.leaderOverallDungeonScore and searchResultInfo.leaderOverallDungeonScore >= db.ratingFilterMin or false) or false
                 local filterRealm = db.filterRealm and LFMPlus:checkRealm(realmName) or false
@@ -718,7 +749,7 @@ local SortSearchResults = function(results)
                 local filterDungeon = (db.dungeonFilter and LFMPlusFrame.dungeonDropdownFrame:GetUserData("selectedCount") > 0) and LFMPlusFrame.dungeonList[searchResultInfo.activityID] == nil or false
                 local filterActivity = (db.dungeonFilter and LFMPlusFrame.dungeonList[searchResultInfo.activityID] and LFMPlusFrame.dungeonDropdownFrame:GetUserData("selectedCount") > 0) and (not LFMPlusFrame.dungeonList[searchResultInfo.activityID].checked) or false
                 if(filterRole or filterRating or filterRealm or filterDungeon or filterPlayer or filterActivity)  then
-                    addFilteredId(LFGListFrame.SearchPanel, searchResultID)
+                    LFMPlus:addFilteredId(LFGListFrame.SearchPanel, searchResultID)
                 end
             else
                 if LFGListFrame.SearchPanel.filteredIDs then
@@ -773,7 +804,7 @@ local SortSearchResults = function(results)
         end
 
         if (LFGListFrame.SearchPanel.filteredIDs) then
-            filterTable(LFGListFrame.SearchPanel.results, LFGListFrame.SearchPanel.filteredIDs)
+            LFMPlus:filterTable(LFGListFrame.SearchPanel.results, LFGListFrame.SearchPanel.filteredIDs)
             LFGListFrame.SearchPanel.filteredIDs = nil
         end
     end
@@ -789,9 +820,137 @@ local SortSearchResults = function(results)
     LFMPlusFrame_resultsText:SetText(L["Showing "] ..  shown .. L[" of "] .. total)
 end
 
+local SearchEntryUpdate = function(entry)
+
+    if (not LFMPlus.mPlusSearch) or (not LFGListFrame.SearchPanel:IsShown()) then
+        return
+    end
+
+    local resultID = entry.resultID
+    local resultInfo = C_LFGList.GetSearchResultInfo(resultID)
+    for i = 1, 5 do
+        local texture = "tex" .. i
+        if (entry.DataDisplay.Enumerate[texture]) then
+            entry.DataDisplay.Enumerate[texture]:Hide()
+        end
+    end
+
+    if db.showClassColors then
+        local numMembers = resultInfo.numMembers
+        local orderIndexes = {}
+
+        for i = 1, numMembers do
+            local role, class = C_LFGList.GetSearchResultMemberInfo(resultID, i)
+            local orderIndex = getIndex(LFG_LIST_GROUP_DATA_ROLE_ORDER, role)
+            table.insert(orderIndexes, {orderIndex, class, i==1 and true or false,role})
+        end
+
+        table.sort(orderIndexes,function(a, b)return a[1] < b[1]end)
+        local classTextureWidth = 10
+        local xOffset = LFGListSearchPanelScrollFrameButton1.DataDisplay.Enumerate:GetWidth() * .22
+        local dataDisplayEnum = entry.DataDisplay.Enumerate
+        for i=1,5 do
+            if dataDisplayEnum["tex"..i] then
+                dataDisplayEnum["tex"..i].roleIcon:Hide()
+            end
+        end
+        for i = 1, numMembers do
+            local class = orderIndexes[i][2]
+            local classColor = RAID_CLASS_COLORS[class]
+            local r, g, b, _ = classColor:GetRGBA()
+            local texture = "tex" .. i
+            local textureFrame = dataDisplayEnum[texture]
+
+            if (not textureFrame) then
+                local f = dataDisplayEnum:CreateFontString(nil,"ARTWORK","GameTooltipText")
+                f:SetSize(25, 25)
+                f:SetPoint("LEFT",dataDisplayEnum,"LEFT",xOffset-5,-1)
+                f.roleIcon = dataDisplayEnum:CreateFontString(nil,"OVERLAY","GameTooltipText")
+                f.roleIcon:SetSize(20,20)
+                f.roleIcon:SetPoint("CENTER",f,"CENTER",2,-7)
+                dataDisplayEnum[texture] = f
+                textureFrame = dataDisplayEnum[texture]
+            end
+
+            if not dataDisplayEnum.leader then
+                local f = dataDisplayEnum:CreateFontString(dataDisplayEnum["LeaderIcon"], "OVERLAY", "GameTooltipText")
+                f:SetSize(0,0)
+                f:SetPoint("LEFT",dataDisplayEnum,"LEFT",0,0)
+                f:SetText(CreateAtlasMarkup("groupfinder-icon-leader",12,5))
+                f:SetNonSpaceWrap(false)
+
+                dataDisplayEnum.leader = f
+            end
+
+            textureFrame:Show()
+            textureFrame:SetText(CreateAtlasMarkup("groupfinder-icon-class-"..string.lower(class),20,20))
+            textureFrame.roleIcon:Hide()
+
+            if orderIndexes[i][4] ~= "DAMAGER" then
+                textureFrame.roleIcon:SetText(CreateAtlasMarkup("roleicon-tiny-"..string.lower(orderIndexes[i][4]),10,10))
+                textureFrame.roleIcon:SetPoint("CENTER",textureFrame,"CENTER",2,-7)
+                textureFrame.roleIcon:Show()
+            end
+
+            if orderIndexes[i][3] then
+                dataDisplayEnum.leader:SetPoint("LEFT",dataDisplayEnum,"LEFT",xOffset-1,7)
+            end
+
+            --textureFrame:SetColorTexture(r, g, b, 1)
+            xOffset = xOffset + 18
+        end
+        for i = 2, 5 do
+            --entry.DataDisplay.Enumerate["Icon" .. i]:SetPoint("CENTER",entry.DataDisplay.Enumerate["Icon" .. i - 1],"CENTER",-15,0)
+        end
+    end
+
+    if db.alwaysShowRoles then
+        entry.DataDisplay:ClearAllPoints()
+        entry.DataDisplay:SetPoint("BOTTOMRIGHT", entry.CancelButton, "BOTTOMLEFT", 5, -5)
+        entry.ExpirationTime:ClearAllPoints()
+        entry.ExpirationTime:SetPoint("BOTTOMRIGHT", entry.CancelButton, "TOPLEFT", 0, -8)
+        entry.PendingLabel:ClearAllPoints()
+        entry.PendingLabel:SetPoint("RIGHT", entry.ExpirationTime, "LEFT", -5, 0)
+
+        if not entry.DataDisplay:IsShown() then
+            entry.DataDisplay:Show()
+        end
+    end
+
+    if db.showLeaderScore and not resultInfo.isDelisted and LFMPlusFrame.dungeonList[resultInfo.activityID] then
+        local formattedLeaderScore = LFMPlus:formatMPlusRating(resultInfo.leaderOverallDungeonScore or 0)
+        entry.Name:SetText(formattedLeaderScore .. " " .. entry.Name:GetText())
+        entry.ActivityName:SetWordWrap(false)
+    end
+
+    if db.shortenActivityName and ns.CONSTANTS.actvityInfo[resultInfo.activityID] then
+        entry.ActivityName:SetText(ns.CONSTANTS.actvityInfo[resultInfo.activityID].shortName .. " (M+)")
+        entry.ActivityName:SetWordWrap(false)
+    end
+
+    if db.showRealmName and LFMPlusFrame.dungeonList[resultInfo.activityID] then
+        local leaderName, realmName = LFMPlus:GetNameRealm(resultInfo.leaderName)
+        if (leaderName) then
+            if realmName then
+                if (db.flagRealm and LFMPlus:checkRealm(realmName)) or (db.flagPlayer and LFMPlus:checkPlayer(leaderName)) then
+                    realmName = RED_FONT_COLOR:WrapTextInColorCode(realmName)
+                else
+                    realmName = NORMAL_FONT_COLOR:WrapTextInColorCode(realmName)
+                end
+            else
+                realmName = BATTLENET_FONT_COLOR:WrapTextInColorCode(GetRealmName())
+            end
+            if realmName then
+                entry.ActivityName:SetText(entry.ActivityName:GetText() .. " " .. realmName)
+                entry.ActivityName:SetWordWrap(false)
+            end
+        end
+    end
+end
+
 local SortApplicants = function(applicants)
 
-    if not LFGListFrame.CategorySelection.selectedCategory == 2 then
+    if not LFMPlus.mPlusListed then
         return
     end
 
@@ -807,18 +966,35 @@ local SortApplicants = function(applicants)
             local friendFound = false
             local neededClassFound = false
             local requiredScoreFound = false
-
             for i=1, applicantInfo.numMembers do
-                local name, className, _, _, _, _, _, _, _, _, relationship, dungeonScore  = C_LFGList.GetApplicantMemberInfo(applicantID, i)
+                local name, className, _, _, _, _, tank, healer, damage, _, relationship, dungeonScore  = C_LFGList.GetApplicantMemberInfo(applicantID, i)
+
+                local _,realmName = LFMPlus:GetNameRealm(name)
+
+                if not db.realmList[realmName] then
+                    db.realmList[realmName] = true
+                end
+
                 relationship = relationship or false
                 friendFound = friendFound or relationship
                 neededClassFound = neededClassFound or LFMPlusFrame.classList[className].checked
                 requiredScoreFound = requiredScoreFound or (dungeonScore > db.ratingFilterMin)
+
             end
 
             if ( (db.ratingFilter and (requiredScoreFound == false)) or (db.classFilter and (neededClassFound == false)) ) then
-                addFilteredId(LFGListFrame.ApplicationViewer, applicantID)
+                if not (LFMPlusFrame.exemptIDs[applicantID]) then
+                    LFMPlus:addFilteredId(LFGListFrame.ApplicationViewer, applicantID)
+                end
+            else
+                if not LFMPlus.eligibleApplicantList[applicantID] then
+                    LFMPlus.newEligibleApplicant = true
+                    LFMPlus.eligibleApplicantList[applicantID] = true
+                end
             end
+        else
+            LFMPlus.newEligibleApplicant = true
+            LFMPlus.eligibleApplicantList[applicantID] = true
         end
     end
 
@@ -847,41 +1023,45 @@ local SortApplicants = function(applicants)
 
         LFMPlusFrame.totalResults = #applicants
 
-        if (LFGListFrame.ApplicationViewer.filteredIDs) then
-            filterTable(applicants, LFGListFrame.ApplicationViewer.filteredIDs)
-            LFGListFrame.ApplicationViewer.filteredIDs = nil
+        if (LFGListFrame.activePanel.filteredIDs) then
+            LFMPlus:filterTable(applicants, LFGListFrame.activePanel.filteredIDs)
+            LFGListFrame.activePanel.filteredIDs = nil
         end
     end
 
     table.sort(applicants, SortApplicantsCB)
 
-    LFMPlusFrame.RefreshDeclineButton()
-
     if (#applicants > 0) then
         LFMPlusFrame.totalResults = #applicants
-        LFGListApplicationViewer_UpdateResults(LFGListFrame.ApplicationViewer)
+        LFGListApplicationViewer_UpdateResults(LFGListFrame.activePanel)
     end
+
+    LFMPlusFrame.totalResults = #applicants
+    LFMPlus:RefreshDeclineButton()
 end
 
 local UpdateApplicantMember = function(member, appID, memberIdx, status, pendingStatus, ...)
+
+    if (not LFMPlus.mPlusListed) or (not LFGListFrame.ApplicationViewer:IsShown()) then
+        return
+    end
+
     local activeEntryInfo = C_LFGList.GetActiveEntryInfo();
     local grayedOut = not pendingStatus and (status == "failed" or status == "cancelled" or status == "declined" or status == "declined_full" or status == "declined_delisted" or status == "invitedeclined" or status == "timedout" or status == "inviteaccepted" or status == "invitedeclined");
+
     if ( not activeEntryInfo ) then
         return;
     end
-    if (not LFGListFrame.CategorySelection.selectedCategory == 2) then
-        return
-    end
+
 
     local textName = member.Name:GetText()
     local _, className, _, _, _, _, _, _, _, _, relationship, dungeonScore  = C_LFGList.GetApplicantMemberInfo(appID, memberIdx)
 
     local bestDungeonScoreForEntry = C_LFGList.GetApplicantDungeonScoreForListing(appID, memberIdx, activeEntryInfo.activityID);
-    local scoreText = formatMPlusRating(dungeonScore)
+    local scoreText = LFMPlus:formatMPlusRating(dungeonScore)
 
     local bestRunString = bestDungeonScoreForEntry and ("|" .. (bestDungeonScoreForEntry.finishedSuccess and "cFF00FF00" or "cFFFF0000" ).. bestDungeonScoreForEntry.bestRunLevel .. "|r") or ""
     member.DungeonScore:SetText(" " .. scoreText .. " - " .. bestRunString)
-    -- LFGListApplicationViewerScrollFrameButton1.Member1.DungeonScore
 
     local nameLength = 100
     if (relationship) then
@@ -892,184 +1072,76 @@ local UpdateApplicantMember = function(member, appID, memberIdx, status, pending
         member.Name:SetWidth(nameLength)
     end
 end
-LFMPlusFrame.nextAppDecline = 0
 
-LFMPlusFrame.GetDeclineList = function()
-    local returnText = ""
-    if LFMPlusFrame.nextAppDecline and LFMPlusFrame.nextAppDecline > 0 then
-        for i=1,#LFMPlusFrame.filteredIDs do
-            local a = C_LFGList.GetApplicantInfo(LFMPlusFrame.filteredIDs[i])
-            if a and a.applicantID and i <= 15 then
-                local name, class, localizedClass, level, itemLevel, honorLevel, tank, healer, damage, assignedRole, relationship, dungeonScore = C_LFGList.GetApplicantMemberInfo(a.applicantID, 1)
-                local serverName = (name and name:find("-") ~= nil) and string.sub(name, name:find("-") + 1, string.len(name)) or ""
-                local nameClean = RAID_CLASS_COLORS[class]:WrapTextInColorCode((name and name:find("-") ~= nil) and string.sub(name, 0, name:find("-") - 1) or name)
-                local formatScore = formatMPlusRating(dungeonScore)
-                local roles = (a.numMembers > 1 and CreateAtlasMarkup("newplayerchat-chaticon-guide") or "") .. (tank and CreateAtlasMarkup("roleicon-tiny-tank") or "") .. (healer and CreateAtlasMarkup("roleicon-tiny-healer") or "") .. (damage and CreateAtlasMarkup("roleicon-tiny-dps") or "")
-                returnText = returnText .. (i == 1 and "|cFFFF0000>|r " or "") .. nameClean .. " " .. serverName .. " " .. formatScore .. " " .. roles
-
-                if a.numMembers > 1 then
-                    returnText = returnText .. "+(" .. tostring(a.numMembers - 1) .. ")" .. (i == 1 and " |cFFFF0000<|r " or "") .. "\n"
-                    for j=2,a.numMembers do
-                        local n, cn, _, _, _, _, t, h, d, _, _, ds = C_LFGList.GetApplicantMemberInfo(a.applicantID, j)
-                        local sn = (n and n:find("-") ~= nil) and string.sub(n, n:find("-") + 1, string.len(n)) or ""
-                        local nc = RAID_CLASS_COLORS[cn]:WrapTextInColorCode((n and n:find("-") ~= nil) and string.sub(n, 0, n:find("-") - 1) or n)
-                        local fs = formatMPlusRating(ds)
-                        local r = (t and CreateAtlasMarkup("roleicon-tiny-tank") or "") .. (h and CreateAtlasMarkup("roleicon-tiny-healer") or "") .. (d and CreateAtlasMarkup("roleicon-tiny-dps") or "")
-                        returnText = returnText .. "      " .. nc .. " " .. " " .. sn .. " " .. fs .. " " .. r .. "\n"
-                    end
-                else
-                    returnText = returnText .. (i == 1 and " |cFFFF0000<|r " or "") .. "\n"
-                end
+-- Hook the minimap ping function to check for pings that may not be for eligible applicants.
+local origQueueStatusMinimapButton_SetGlowLock = QueueStatusMinimapButton_SetGlowLock
+QueueStatusMinimapButton_SetGlowLock = function(...)
+    local s, lock, enabled, numPingSounds = ...
+    local reallyEnabled = enabled
+    if db.enabled and LFMPlus.mPlusListed and lock == "lfglist-applicant" then
+        if enabled then
+            if LFMPlus.newEligibleApplicant then
+                LFMPlus.newEligibleApplicant = false
+            else
+                reallyEnabled = false
+                numPingSounds = -1
             end
         end
-        if LFMPlusFrame.filteredIDs and #LFMPlusFrame.filteredIDs - 15 > 0 then
-            returnText = returnText .. "\n" .. "+" .. tostring(#LFMPlusFrame.filteredIDs - 15) .. " more applicants."
-        end
     end
-    if returnText:len() == 0 then
-        returnText = "No Applicants Filtered"
-    end
-    return returnText
+    origQueueStatusMinimapButton_SetGlowLock(s, lock, reallyEnabled, numPingSounds)
 end
 
-LFMPlusFrame.RefreshDeclineButton = function()
-    local resultString = "0"
-    if (db.ratingFilter or db.classFilter) and (LFMPlusFrame.filteredIDs and #LFMPlusFrame.filteredIDs > 0) then
-        local id = LFMPlusFrame.filteredIDs[1]
-        local scriptText = "/script tremove(LFMPlusFrame.filteredIDs,1);"
-        local a=C_LFGList.GetApplicantInfo(id);
-
-        if a then
-            LFMPlusFrame.nextAppDecline = a.applicantID
-            if (a.applicationStatus~='applied' and a.applicationStatus~='invited') then 
-                scriptText = scriptText .. "C_LFGList.RemoveApplicant("..tostring(LFMPlusFrame.nextAppDecline)..")"
-            else
-                scriptText = scriptText .. "C_LFGList.DeclineApplicant("..tostring(LFMPlusFrame.nextAppDecline)..")"
-            end;
-            LFMPlusFrame.declineButton:SetAttribute("macrotext1", scriptText .. "; LFGListApplicationViewer_UpdateResults(LFGListFrame.ApplicationViewer);")
-
-            LFMPlusFrame.declineButton:Enable()
-        else
-            LFMPlusFrame.nextAppDecline = nil
-            LFMPlusFrame.filteredIDs = {}
-            LFMPlusFrame.declineButton:SetAttribute("macrotext1", "/script LFGListFrame.ApplicationViewer.RefreshButton:Click()")
+function LFMPlus:DeclineButtonTooltip()
+    GameTooltip:ClearLines()
+    GameTooltip:SetOwner(LFMPlusFrame.declineButton, "ANCHOR_BOTTOMLEFT")
+    GameTooltip_SetTitle(GameTooltip,"LFM+ Decline Queue")
+    GameTooltip:AddLine(CreateTextureMarkup(918860,1, 1, 200, 5, 0, 1, 0, 1),1,1,1,false)
+    if table.maxn(LFMPlusFrame.declineButtonInfo) > 0 then
+        for i,applicantID in pairs(LFMPlusFrame.filteredIDs) do
+            if i <= ns.CONSTANTS.declineQueueMax then
+                for _,memberString in pairs(LFMPlusFrame.declineButtonInfo[applicantID]) do
+                    GameTooltip:AddLine(memberString,nil,nil,nil, false)
+                end
+                GameTooltip:AddLine(CreateTextureMarkup(918860,1, 1, 200, 5, 0, 1, 0, 1),1,1,1,false)
+            end
         end
-        local remaining = #LFMPlusFrame.filteredIDs
-        resultString = "|cFF00FF00" .. tostring(remaining).."/"..tostring(LFMPlusFrame.totalResults) .. "|r"
+        GameTooltip_SetBottomText(GameTooltip,"+22 More")
     else
-        LFMPlusFrame.nextAppDecline = nil
-        LFMPlusFrame.filteredIDs = {}
-        LFGListFrame.ApplicationViewer.filteredIDs = nil
-        LFMPlusFrame.declineButton:SetAttribute("macrotext1", "/script LFGListFrame.ApplicationViewer.RefreshButton:Click()")
+        GameTooltip:AddLine("No Applicants Filtered")
     end
-    if GameTooltip:IsShown() and (GameTooltip:GetOwner():GetName() == "LFMPlusFrame_declineButton") then
-       GameTooltip:SetText(LFMPlusFrame.GetDeclineList(), NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, 1, true);
-       GameTooltip:Show()
-    end
-    LFMPlusFrame.declineButton:SetText(resultString)
+    GameTooltip_AddInstructionLine(GameTooltip,"Click: Decline (Left), Allow (S-Left), Next (Right), Previous (S-Right)")
+    GameTooltip:Show()
 end
+
+function LFMPlus:RefreshDeclineButton()
+    if not LFMPlus.mPlusListed then
+        return
+    end
+    LFMPlusFrame:GetDeclineList()
+
+    if ((db.ratingFilter or db.classFilter) and (LFMPlusFrame.nextAppDecline and C_LFGList.GetApplicantInfo(LFMPlusFrame.nextAppDecline))) then
+        LFMPlusFrame.declineButton:SetAttribute("shift-macrotext1", string.format("/script LFMPlusFrame:ExcludeApp(%s)", tostring(LFMPlusFrame.nextAppDecline)))
+        LFMPlusFrame.declineButton:SetAttribute("macrotext1", string.format("/script LFMPlusFrame:DeclineApp(%s)", tostring(LFMPlusFrame.nextAppDecline)))
+    else
+        LFMPlusFrame.declineButton:SetAttribute("shift-macrotext1", "/script LFMPlusFrame:ShiftDeclineSelection()")
+        LFMPlusFrame.declineButton:SetAttribute("macrotext1", "/script LFMPlusFrame:ShiftDeclineSelection()")
+    end
+
+    LFMPlusFrame.declineButton:SetText((#LFMPlusFrame.filteredIDs > 0 and LFMPlusFrame.nextAppDecline) and GREEN_FONT_COLOR:WrapTextInColorCode(tostring(#LFMPlusFrame.filteredIDs)) or 0)
+
+    if GameTooltip:IsShown() and (GameTooltip:GetOwner():GetName() == "LFMPlusFrame.declineButton") then
+        LFMPlus:DeclineButtonTooltip()
+    end
+end
+
 function LFMPlus:AddToFilter(name,realm)
     if not db.flagPlayerList[name.."-"..realm] then
         db.flagPlayerList[name.."-"..realm] = true
     end
 end
 
-local SearchEntryUpdate = function(entry)
-
-    if (LFGListFrame.CategorySelection.selectedCategory ~= 2) or not db.enabled then
-        return
-    end
-
-    local resultID = entry.resultID
-    local resultInfo = C_LFGList.GetSearchResultInfo(resultID)
-    for i = 1, 5 do
-        local texture = "tex" .. i
-        if (entry.DataDisplay.Enumerate[texture]) then
-            entry.DataDisplay.Enumerate[texture]:Hide()
-        end
-    end
-
-    if db.showClassColors then
-        local numMembers = resultInfo.numMembers
-        local orderIndexes = {}
-
-        for i = 1, numMembers do
-            local role, class = C_LFGList.GetSearchResultMemberInfo(resultID, i)
-            local orderIndex = getIndex(LFG_LIST_GROUP_DATA_ROLE_ORDER, role)
-            table.insert(orderIndexes, {orderIndex, class})
-        end
-
-        table.sort(orderIndexes,function(a, b)return a[1] < b[1]end)
-        local xOffset = -76
-
-        for i = 1, numMembers do
-            local class = orderIndexes[i][2]
-            local classColor = RAID_CLASS_COLORS[class]
-            local r, g, b, _ = classColor:GetRGBA()
-            local texture = "tex" .. i
-
-            if (not entry.DataDisplay.Enumerate[texture]) then
-                entry.DataDisplay.Enumerate[texture] = entry.DataDisplay.Enumerate:CreateTexture(nil, "ARTWORK")
-                entry.DataDisplay.Enumerate[texture]:SetSize(10, 3)
-                entry.DataDisplay.Enumerate[texture]:SetPoint("RIGHT",entry.DataDisplay.Enumerate,"RIGHT",xOffset,-10)
-            end
-
-            entry.DataDisplay.Enumerate[texture]:Show()
-            entry.DataDisplay.Enumerate[texture]:SetColorTexture(r, g, b, 1)
-
-            xOffset = xOffset + 15
-        end
-        for i = 2, 5 do
-            entry.DataDisplay.Enumerate["Icon" .. i]:SetPoint("CENTER",entry.DataDisplay.Enumerate["Icon" .. i - 1],"CENTER",-15,0)
-        end
-    end
-    if db.alwaysShowRoles then
-        entry.DataDisplay:ClearAllPoints()
-        entry.DataDisplay:SetPoint("BOTTOMRIGHT", entry.CancelButton, "BOTTOMLEFT", 5, -5)
-        entry.ExpirationTime:ClearAllPoints()
-        entry.ExpirationTime:SetPoint("BOTTOMRIGHT", entry.CancelButton, "TOPLEFT", 0, -8)
-        entry.PendingLabel:ClearAllPoints()
-        entry.PendingLabel:SetPoint("RIGHT", entry.ExpirationTime, "LEFT", -5, 0)
-
-        if not entry.DataDisplay:IsShown() then
-            entry.DataDisplay:Show()
-        end
-    end
-    if db.showLeaderScore and not resultInfo.isDelisted and LFMPlusFrame.dungeonList[resultInfo.activityID] then
-        local formattedLeaderScore = formatMPlusRating(resultInfo.leaderOverallDungeonScore or 0)
-        entry.Name:SetText(formattedLeaderScore .. " " .. entry.Name:GetText())
-        entry.ActivityName:SetWordWrap(false)
-    end
-
-    if db.shortenActivityName and ns.ACTIVITY_INFO[resultInfo.activityID] then
-        entry.ActivityName:SetText(ns.ACTIVITY_INFO[resultInfo.activityID].shortName .. " (M+)")
-        entry.ActivityName:SetWordWrap(false)
-    end
-
-    if db.showRealmName and LFMPlusFrame.dungeonList[resultInfo.activityID] then
-        local leaderName = resultInfo.leaderName
-        if (leaderName) then
-            local realmName = leaderName:find("-") ~= nil and string.sub(leaderName, leaderName:find("-") + 1, string.len(leaderName))
-            if realmName then
-                if (db.flagRealm and LFMPlus:checkRealm(realmName)) or (db.flagPlayer and LFMPlus:checkPlayer(leaderName)) then
-                    realmName = RED_FONT_COLOR:WrapTextInColorCode(realmName)
-                else
-                    realmName = NORMAL_FONT_COLOR:WrapTextInColorCode(realmName)
-                end
-            else
-                realmName = BATTLENET_FONT_COLOR:WrapTextInColorCode(GetRealmName())
-            end
-            if realmName then
-                entry.ActivityName:SetText(entry.ActivityName:GetText() .. " " .. realmName)
-                entry.ActivityName:SetWordWrap(false)
-
-            end
-        end
-    end
-end
-
 function LFMPlus:FilterChanged()
-    if ns.Init and LFGListFrame and LFGListFrame.activePanel and LFGListFrame.activePanel.RefreshButton and LFGListFrame.activePanel.RefreshButton:IsShown() then
+    if ns.Init and LFGListFrame and LFGListFrame.activePanel and LFGListFrame.activePanel.RefreshButton then
         LFGListFrame.activePanel.RefreshButton:Click()
     end
 end
@@ -1092,7 +1164,8 @@ function LFMPlus:GetNameRealm(unit, tempRealm)
     return name, realm
 end
 
-do
+-- Begining functionality for adding players/realms to the addons internal flag list.
+--[[ do
     -- Inspired by the RaiderIO addon.
     local LibDropDownExtension = LibStub and LibStub:GetLibrary("LibDropDownExtension-1.0", true)
     local dropdown = {
@@ -1216,11 +1289,11 @@ do
         },
     }
     LibDropDownExtension:RegisterEvent("OnShow OnHide", OnToggle, 1, dropdown)
-end
+end ]]
 
 function LFMPlus:RefreshResults()
-    if LFGListFrame.activePanel:IsShown() and LFGListFrame.activePanel.RefreshButton then
-        if LFGListFrame.CategorySelection.selectedCategory == 2 and LFGListFrame.SearchPanel:IsShown() then
+    if ns.Init then
+        if LFMPlus.mPlusSearch then
             LFGListSearchPanel_UpdateResultList(LFGListFrame.activePanel);
         end
         LFGListFrame.activePanel.RefreshButton:Click()
@@ -1229,10 +1302,184 @@ end
 
 local function InitializeUI()
     -- Create the frame for toggling the active role filter.
-    LFMPlusFrame:SetFrameLevel(0)
     do
-        local f = CreateFrame("Frame", nil, LFMPlusFrame)
+        local f = LFMPlusFrame
 
+        f:SetSize(250,50)
+        f:SetPoint("BOTTOMRIGHT",GroupFinderFrame,"TOPRIGHT")
+        f:SetFrameLevel(0)
+
+        f.frames = {
+            search = {},
+            app = {},
+            all = {}
+        }
+        f.exemptIDs = {}
+        f.declineButtonInfo = {}
+        f.filteredIDs = {}
+
+        f.dungeonList = {}
+        f.dungeonListLoaded = false
+
+        f.classList = {}
+        f.classListLoaded = false
+
+        f.totalResults = 0
+
+        f.nextAppDecline = nil
+
+        function f:GetDeclineList()
+            local i = 0
+            for _,v in ipairs(self.filteredIDs) do
+                local applicantID = v
+                local applicantData = C_LFGList.GetApplicantInfo(applicantID)
+                if applicantData and i <= ns.CONSTANTS.declineQueueMax then
+                    self.declineButtonInfo[applicantID] = {}
+                    for memberIdx=1,applicantData.numMembers do
+                        local name, className, _, _, _, _, tank, healer, damage, _, _, dungeonScore  = C_LFGList.GetApplicantMemberInfo(applicantID, memberIdx)
+                        local shortName, server = LFMPlus:GetNameRealm(name)
+                        local formattedName = RAID_CLASS_COLORS[className]:WrapTextInColorCode(string.format(ns.CONSTANTS.lengths.name,shortName))
+                        local roleIcons = string.format("%s%s%s", CreateAtlasMarkup(tank and "roleicon-tiny-tank" or "groupfinder-icon-emptyslot", 10,10), CreateAtlasMarkup(healer and "roleicon-tiny-healer" or "groupfinder-icon-emptyslot", 10,10), CreateAtlasMarkup(damage and "roleicon-tiny-dps" or "groupfinder-icon-emptyslot", 10,10))
+
+                        local header = CreateAtlasMarkup(((applicantID == self.nextAppDecline and memberIdx==1) and "pvpqueue-sidebar-nextarrow" or ""), 10,10)
+                        self.declineButtonInfo[applicantID][memberIdx] = string.format("%s%s %s %s %s", header, LFMPlus:formatMPlusRating(dungeonScore), roleIcons, formattedName, string.format(ns.CONSTANTS.lengths.server,server))
+                    end
+                end
+                i = i + 1
+            end
+        end
+
+        function f:FindFilteredId(id)
+            for i=1,#LFMPlusFrame.filteredIDs do
+                if LFMPlusFrame.filteredIDs[i] == id then
+                    return i
+                end
+            end
+            return nil
+        end
+
+        function f:ShiftDeclineSelection(direction)
+            local newVal = nil
+
+            for i=1,#LFMPlusFrame.filteredIDs do
+
+                local id = LFMPlusFrame.filteredIDs[i]
+                local nextId = LFMPlusFrame.filteredIDs[i + 1]
+                local prevId = LFMPlusFrame.filteredIDs[i - 1]
+
+                if LFMPlusFrame.nextAppDecline == id then
+                    if direction == true and (nextId and (i + 1 <= ns.CONSTANTS.declineQueueMax)) then
+                        newVal = nextId
+                        break
+                    elseif direction == false then
+                        if prevId then
+                            newVal = prevId
+                        else
+                            newVal = LFMPlusFrame.filteredIDs[ns.CONSTANTS.declineQueueMax] or LFMPlusFrame.filteredIDs[#LFMPlusFrame.filteredIDs]
+                        end
+                        break
+                    end
+                end
+            end
+
+            if newVal == nil and LFMPlusFrame.filteredIDs[1] then
+                newVal = LFMPlusFrame.filteredIDs[1]
+            end
+            LFMPlusFrame.nextAppDecline = newVal
+            LFMPlus:RefreshDeclineButton()
+        end
+
+        function f:ExcludeApp(id)
+            if id then
+                LFMPlus:excludeFilteredId(id)
+                LFMPlusFrame:ShiftDeclineSelection(false)
+                LFGListFrame.activePanel.RefreshButton:Click()
+            end
+        end
+
+        function f:DeclineApp(applicantID)
+            if applicantID then
+                local applicantInfo = C_LFGList.GetApplicantInfo(applicantID)
+                if applicantInfo then
+                    local ack = applicantInfo.applicationStatus~='applied' and applicantInfo.applicationStatus~='invited'
+                    if ack then
+                        C_LFGList.RemoveApplicant(applicantID)
+                    else
+                        C_LFGList.DeclineApplicant(applicantID)
+                    end
+                end
+                LFMPlus:removeFilteredId(applicantID)
+            end
+        end
+
+        f.resultsFrame = CreateFrame("Frame",nil,f)
+        f.resultsFrame:ClearAllPoints()
+        f.resultsFrame:SetWidth(100)
+        f.resultsFrame:SetHeight(20)
+        f.resultsFrame:SetPoint("BOTTOM",LFGListFrame.SearchPanel.SearchBox,"TOP",0,5)
+
+        f.resultsFrameText = f.resultsFrame:CreateFontString("LFMPlusFrame_resultsText", "ARTWORK", "GameFontNormal")
+        f.resultsFrameText:ClearAllPoints()
+        f.resultsFrameText:SetWidth(100)
+        f.resultsFrameText:SetHeight(20)
+        f.resultsFrameText:SetPoint("TOP",f.resultsFrame,"TOP")
+        f.resultsFrameText:SetText(L["Showing "] ..  0 .. L[" of "] .. 0)
+
+        f.frames.search["resultsFrame"] = true
+
+        ---@class OptionsSliderTemplate : Slider
+        ---@field Text FontString
+        ---@field Low FontString
+        ---@field High FontString
+        f.scoreMinFrame = CreateFrame("Slider",nil,f,"OptionsSliderTemplate")
+
+        function f.scoreMinFrame:SetDisplayValue(value)
+            self.noclick = true;
+            self:SetValue(value);
+            self.Value:SetText(LFMPlus:formatMPlusRating(value));
+            db.ratingFilterMin = value
+            db.ratingFilter = value > 0
+            LFMPlus:RefreshResults()
+            self.noclick = false;
+        end
+
+        function f.scoreMinFrame:SetEnable(value)
+            if value then
+                self:Enable()
+                self:SetAlpha(1)
+            else
+                self:Disable()
+                self:SetAlpha(.5)
+            end
+        end
+
+        f.scoreMinFrame:SetScript("OnValueChanged",function(self, value)
+            self:SetDisplayValue(value)
+        end)
+
+        --f.scoreMinFrame:SetBackdrop(f.scoreMinFrame:GetBackdrop())
+
+        f.scoreMinFrame:SetValueStep(100)
+        f.scoreMinFrame:SetObeyStepOnDrag(false)
+        f.scoreMinFrame:SetSize(125,15)
+        f.scoreMinFrame:SetPoint("RIGHT",f,"RIGHT",-15,0)
+
+        f.scoreMinFrame.Value = f.scoreMinFrame.Text
+        f.scoreMinFrame.Value:ClearAllPoints()
+        f.scoreMinFrame.Value:SetPoint("TOP", f.scoreMinFrame, "BOTTOM", 0, 3)
+
+        f.scoreMinFrame:SetMinMaxValues(ns.CONSTANTS.ratingMin, ns.CONSTANTS.ratingMax);
+        f.scoreMinFrame:SetDisplayValue(db.ratingFilterMin)
+        f.scoreMinFrame.Low:SetText(LFMPlus:formatMPlusRating(ns.CONSTANTS.ratingMin))
+        f.scoreMinFrame.High:SetText(LFMPlus:formatMPlusRating(ns.CONSTANTS.ratingMax))
+
+        f:Hide()
+        f.frames.search["scoreMinFrame"] = true
+        f.frames.app["scoreMinFrame"] = true
+    end
+    do
+        LFMPlusFrame.activeRoleFrame = CreateFrame("Frame", "$parent.activeRoleFrame", LFMPlusFrame)
+        local f = LFMPlusFrame.activeRoleFrame
         function f:UpdateRoleIcon()
             if CanInspect("player", false) then
                 NotifyInspect("player")
@@ -1279,7 +1526,6 @@ local function InitializeUI()
             end
         end)
 
-        LFMPlusFrame.activeRoleFrame = f
         LFMPlusFrame.frames.search["activeRoleFrame"] = true
 
         f:UpdateRoleIcon()
@@ -1292,8 +1538,8 @@ local function InitializeUI()
         local f = AceGUI:Create("Dropdown")
         f.frame:SetFrameStrata("HIGH")
         f:SetMultiselect(true)
-        f:SetWidth(50)
-        f:SetPulloutWidth(160)
+        f:SetWidth(40)
+        f:SetPulloutWidth(130)
 
         function f:Show()
             self.frame:Show()
@@ -1323,6 +1569,7 @@ local function InitializeUI()
             else
                 text = count
             end
+            self.text:SetJustifyH("CENTER")
             self.text:SetText(text)
         end
 
@@ -1371,8 +1618,8 @@ local function InitializeUI()
 
         f.frame:SetFrameStrata("HIGH")
         f:SetMultiselect(true)
-        f:SetWidth(50)
-        f:SetPulloutWidth(160)
+        f:SetWidth(40)
+        f:SetPulloutWidth(130)
 
         function f:Show()
             self.frame:Show()
@@ -1402,6 +1649,7 @@ local function InitializeUI()
             else
                 text = count
             end
+            self.text:SetJustifyH("CENTER")
             self.text:SetText(text)
         end
 
@@ -1448,35 +1696,41 @@ local function InitializeUI()
 
     --Create Application Decline Button
     do
-        local f = CreateFrame("Button", "LFMPlusFrame_declineButton", LFMPlusFrame, "SecureActionButtonTemplate")
+        LFMPlusFrame.declineButton = CreateFrame("Button", "$parent.declineButton", LFMPlusFrame, "SecureActionButtonTemplate")
+        local f = LFMPlusFrame.declineButton
         f:SetFrameLevel(1)
         f:SetFrameStrata("HIGH")
-        f:SetPoint("RIGHT", LFGListFrame.SearchPanel.RerfreshButton, "LEFT", 0, 0)
+        f:SetPoint("CENTER", LFMPlusFrame.activeRoleFrame, "CENTER", 0, 0)
         f:SetAttribute("type1", "macro")
-        f:SetAttribute("macrotext1", "/script 1 == 1")
-        f:SetWidth(LFGListFrame.ApplicationViewer.RefreshButton:GetWidth() + 25)
-        f:SetHeight(LFGListFrame.ApplicationViewer.RefreshButton:GetWidth() + 10)
-        f:SetText("0/0")
+        f:SetAttribute("macrotext1", "/script LFMPlusFrame:DeclineApp()")
+        f:SetAttribute("shift-type1", "macro")
+        f:SetAttribute("shift-macrotext1", "/script LFMPlusFrame:ExcludeApp()");
+        f:SetAttribute("type2", "macro")
+        f:SetAttribute("macrotext2", "/script LFMPlusFrame:ShiftDeclineSelection(true)")
+        f:SetAttribute("shift-type2", "macro")
+        f:SetAttribute("shift-macrotext2", "/script LFMPlusFrame:ShiftDeclineSelection(false)")
+        f:RegisterForClicks("LeftButtonUp","RightButtonUp");
+        f:SetSize(32,32);
+        f:SetText("0")
         f:SetNormalFontObject("GameFontNormalSmall")
         f:SetNormalTexture("Interface/Buttons/UI-SquareButton-Up")
         f:SetHighlightTexture("Interface/Buttons/UI-Common-MouseHilight")
         f:SetPushedTexture("Interface/Buttons/UI-SquareButton-Down")
         f:SetScript("OnEnter", function(s)
-            GameTooltip:SetOwner(f, "ANCHOR_RIGHT");
-            GameTooltip:SetText(LFMPlusFrame.GetDeclineList(), NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, 1, true);
-            GameTooltip:Show();
+            LFMPlus:DeclineButtonTooltip()
+        end)
+        f:SetScript("OnShow",function(s)
+            LFMPlusFrame:ShiftDeclineSelection()
         end)
         f:SetScript("OnLeave", GameTooltip_Hide)
+        f:Hide()
 
-        LFMPlusFrame.declineButton = f
         LFMPlusFrame.frames.app["declineButton"] = true
     end
 end
 
 function LFMPlus:OnInitialize()
     db = LibStub("AceDB-3.0"):New(ns.friendlyName .. "DB", defaults, true).global
-    LFMPlusFrame.dungeonListLoaded = false
-    LFMPlusFrame.classListLoaded = false
 
     -- Register options table and slash command
     LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable(addonName, options, true)
@@ -1487,33 +1741,6 @@ function LFMPlus:OnInitialize()
     LibStub("AceConfigDialog-3.0"):AddToBlizOptions(addonName, addonName)
     InitializeUI()
 
-    LFMPlusFrame_results:ClearAllPoints()
-    LFMPlusFrame_results:SetWidth(100)
-    LFMPlusFrame_results:SetHeight(20)
-    LFMPlusFrame_results:SetPoint("BOTTOM",LFGListFrame.SearchPanel.SearchBox,"TOP",0,5)
-
-    LFMPlusFrame_resultsText = LFMPlusFrame_results:CreateFontString("LFMPlusFrame_resultsText", "ARTWORK", "GameFontNormal")
-    LFMPlusFrame_resultsText:ClearAllPoints()
-    LFMPlusFrame_resultsText:SetWidth(100)
-    LFMPlusFrame_resultsText:SetHeight(20)
-    LFMPlusFrame_resultsText:SetPoint("TOP",LFMPlusFrame_results,"TOP")
-    LFMPlusFrame_resultsText:SetText(L["Showing "] ..  0 .. L[" of "] .. 0)
-
-    LFMPlusFrame_ScoreMin.Value = LFMPlusFrame_ScoreMin.Text
-    LFMPlusFrame_ScoreMin.Value:ClearAllPoints()
-    LFMPlusFrame_ScoreMin.Value:SetPoint("TOP", LFMPlusFrame_ScoreMin, "BOTTOM", 0, 3)
-
-    LFMPlusFrame_ScoreMin:SetMinMaxValues(ns.CONSTANTS.ratingMin, ns.CONSTANTS.ratingMax);
-    LFMPlusFrame_ScoreMin:SetDisplayValue(db.ratingFilterMin)
-    LFMPlusFrame_ScoreMin.Low:SetText(formatMPlusRating(ns.CONSTANTS.ratingMin))
-    LFMPlusFrame_ScoreMin.High:SetText(formatMPlusRating(ns.CONSTANTS.ratingMax))
-
-    LFMPlusFrame:Hide()
-
-    if db.enabled then
-        LFMPlus:Enable()
-    end
-
     for k,v in pairs(LFMPlusFrame.frames.search) do
         LFMPlusFrame.frames.all[k] = v
     end
@@ -1521,20 +1748,20 @@ function LFMPlus:OnInitialize()
     for k,v in pairs(LFMPlusFrame.frames.app) do
         LFMPlusFrame.frames.all[k] = v
     end
+
+    if db.enabled then
+        LFMPlus:Enable()
+    end
 end
 
 function LFMPlus:ToggleFrames(frame,action)
     if db.enabled and action == "show" then
 
-        self.visibility = frame
-
         if not LFMPlusFrame.dungeonListLoaded then
-            LFMPlusFrame.dungeonList = {}
             self:GetDungeonList()
         end
 
         if not LFMPlusFrame.classListLoaded then
-            LFMPlusFrame.classList = {}
             self:GetClassList()
         end
 
@@ -1556,81 +1783,122 @@ function LFMPlus:ToggleFrames(frame,action)
     end
 end
 
-function LFMPlus:Enable()
-    if not ns.HooksRan then
-        hooksecurefunc("LFGListUtil_SortSearchResults", SortSearchResults)
-        hooksecurefunc("LFGListSearchEntry_Update", SearchEntryUpdate)
-        hooksecurefunc("LFGListUtil_SortApplicants", SortApplicants)
-        hooksecurefunc("LFGListApplicationViewer_UpdateApplicantMember", UpdateApplicantMember)
+function LFMPlus:ClearValues()
+    LFMPlus.mPlusSearch = false
+    LFMPlus.mPlusListed = false
+    LFMPlus.newEligibleApplicant = false
+    LFMPlus.eligibleApplicantList = {}
 
-        LFGListFrame.ApplicationViewer.RemoveEntryButton:HookScript("OnClick", function(s)
-            LFMPlusFrame.declineButton:Hide()
-        end)
+    LFMPlusFrame.exemptIDs = {}
+    LFMPlusFrame.declineButtonInfo = {}
+    LFMPlusFrame.filteredIDs = {}
 
-        LFGListFrame.CategorySelection.FindGroupButton:HookScript("OnClick", function(s)
-            LFMPlusFrame.declineButton:Hide()
-        end)
+    LFMPlusFrame.totalResults = 0
 
-        LFGListFrame.EntryCreation.ListGroupButton:HookScript("OnClick", function(s)
-            LFMPlusFrame.declineButton:ClearAllPoints()
-            LFMPlusFrame.declineButton:SetWidth(LFGListFrame.ApplicationViewer.RefreshButton:GetWidth() + 25)
-            LFMPlusFrame.declineButton:SetHeight(LFGListFrame.ApplicationViewer.RefreshButton:GetWidth() + 10)
-            LFMPlusFrame.declineButton:SetPoint("RIGHT",LFGListFrame.ApplicationViewer.RefreshButton, "LEFT", 0, 0)
-            LFMPlusFrame.declineButton:Show()
-        end)
+    LFMPlusFrame.nextAppDecline = nil
+end
 
-        LFGListFrame.SearchPanel:HookScript("OnShow",function(s)
-            local selectedCategory = LFGListFrame.CategorySelection.selectedCategory
-            if selectedCategory == 2 then
+function LFMPlus:RunHooks()
+    if not ns.InitHooksRan then
+        LFGListFrame.SearchPanel:HookScript("OnShow",function()
+            if LFGListFrame.CategorySelection.selectedCategory == 2 then
                 LFMPlus:ToggleFrames("search","show")
             end
         end)
 
-        LFGListFrame.ApplicationViewer:HookScript("OnShow",function(s)
-            local selectedCategory = LFGListFrame.CategorySelection.selectedCategory
-            if selectedCategory == 2 then
+        LFGListFrame.SearchPanel:HookScript("OnHide",function()
+            LFMPlus:ToggleFrames("search","hide")
+        end)
+
+        LFGListFrame.SearchPanel.BackButton:HookScript("OnClick",function()
+            LFMPlus:ClearValues()
+        end)
+
+        LFGListFrame.ApplicationViewer:HookScript("OnShow",function()
+            if LFMPlus.mPlusListed then
                 LFMPlus:ToggleFrames("app","show")
             end
         end)
 
-        LFGListFrame.SearchPanel:HookScript("OnHide",function(s)
-            LFMPlus:ToggleFrames("search","hide")
-        end)
-
-        LFGListFrame.ApplicationViewer:HookScript("OnHide",function(s)
+        LFGListFrame.ApplicationViewer:HookScript("OnHide",function()
             LFMPlus:ToggleFrames("app","hide")
         end)
 
-        for i=1,#LFGListSearchPanelScrollFrame.buttons do
-            LFGListSearchPanelScrollFrame.buttons[i]:HookScript("OnDoubleClick", function()
-                if db.lfgListingDoubleClick then
-                    LFGListFrame.SearchPanel.SignUpButton:Click()
+        LFGListFrame.CategorySelection.FindGroupButton:HookScript("OnClick", function()
+            LFMPlus.mPlusSearch = LFGListFrame.CategorySelection.selectedCategory == 2
+            LFMPlus.mPlusListed = false
+        end)
+
+        LFGListFrame.CategorySelection.StartGroupButton:HookScript("OnClick", function(s)
+            local panel = s:GetParent();
+            if ( not panel.selectedCategory ) then
+                return;
+            end
+            if panel.selectedCategory == 2 then
+                local _, mapID = C_ChallengeMode.GetMapUIInfo(C_MythicPlus.GetOwnedKeystoneChallengeMapID())
+                if mapID then
+                    LFGListEntryCreation_Select(LFGListFrame.EntryCreation, nil, nil, nil, ns.CONSTANTS.mapInfo[mapID].activityId);
                 end
-            end)
-        end
-        LFGListApplicationDialogDescription.EditBox:HookScript("OnShow",function()
-            if db.autoFocusSignUp then
-                LFGListApplicationDialogDescription.EditBox:SetFocus()
             end
         end)
 
-        LFGListApplicationDialogDescription.EditBox:HookScript("OnEnterPressed",function()
-            if db.signupOnEnter then
-                LFGListApplicationDialog.SignUpButton:Click()
-            end
-        end)
-
-        LFGListFrame.ApplicationViewer.UnempoweredCover:HookScript("OnShow",function()
-            if db.hideAppViewerOverlay then
-                LFGListFrame.ApplicationViewer.UnempoweredCover:Hide()
-            end
-        end)
-        ns.HooksRan = true
+        hooksecurefunc("LFGListUtil_SortSearchResults", SortSearchResults)
+        hooksecurefunc("LFGListSearchEntry_Update", SearchEntryUpdate)
+        hooksecurefunc("LFGListUtil_SortApplicants", SortApplicants)
+        hooksecurefunc("LFGListApplicationViewer_UpdateApplicantMember", UpdateApplicantMember)
+        --hooksecurefunc("QueueStatusMinimapButton_SetGlowLock",CheckForPings)
+        ns.InitHooksRan = true
     end
+end
+
+function LFMPlus:Enable()
+    if not ns.SecondHookRan then
+        -- Hooks for frames that may not exist when the addon done loading so we hook into a frame that should be available and run these hooks once its shown.
+       PVEFrame:HookScript("OnShow",function()
+            if not ns.SecondHookRan then
+                for _,v in pairs(LFGListFrame.CategorySelection.CategoryButtons) do
+                    v:HookScript("OnDoubleClick",function()
+                            if IsShiftKeyDown() then
+                                LFGListFrame.CategorySelection.StartGroupButton:Click()
+                            else
+                                LFGListFrame.CategorySelection.FindGroupButton:Click()
+                            end
+                    end)
+                end
+
+                for _,v in pairs(LFGListFrame.SearchPanel.ScrollFrame.buttons) do
+                    v:HookScript("OnDoubleClick", function()
+                        if db.lfgListingDoubleClick then
+                            LFGListFrame.SearchPanel.SignUpButton:Click()
+                        end
+                    end)
+                end
+
+                LFGListApplicationDialogDescription.EditBox:HookScript("OnShow",function()
+                    if db.autoFocusSignUp then
+                        LFGListApplicationDialogDescription.EditBox:SetFocus()
+                    end
+                end)
+
+                LFGListApplicationDialogDescription.EditBox:HookScript("OnEnterPressed",function()
+                    if db.signupOnEnter then
+                        LFGListApplicationDialog.SignUpButton:Click()
+                    end
+                end)
+
+                LFGListFrame.ApplicationViewer.UnempoweredCover:HookScript("OnShow",function()
+                    if db.hideAppViewerOverlay then
+                        LFGListFrame.ApplicationViewer.UnempoweredCover:Hide()
+                    end
+                end)
+                ns.SecondHookRan = true
+            end
+        end)
+    end
+    LFMPlus:RunHooks()
     ns.Init = true
-    LFMPlus:RefreshResults()
 end
 
 function LFMPlus:Disable()
-
+    db.enabled = false
 end

@@ -1,55 +1,80 @@
 This addon enhances the default LFG UI for Mythic+ listings with more details and provides a few quality-of-life improvements.
 
-Items marked with ❗ a WIP.
+**Addon Layout**
+![ss1](/screenshots/1.PNG?raw=true "Addon Frame")
+- Active Role Filter
+    - When enabled, only listings with a spot open for your current role are shown.
+    - Updated when you change specs.
+- Dungeon/Class Dropdown
+    - Filter listings (or applicants) for desired dungeons or classes.
+    ![ss2](/screenshots/2.PNG?raw=true "Dungeon Dropdown")![ss4](/screenshots/6.PNG?raw=true "Class Selection")
+- Minimum Score Slider
+    - Change the minimum score required for group listings or applicants.
+    - Set at intervals of 100 (100,200,300,2100,2400,3100, ect.)
+- Decline Queue
+    - Any applicants who do not meet your filter requirements come here.
+    - (Shift) Left Click - Decline (Exempt) applicant.
+        - Decline or let applicants die in queue? Their fate is in your hands....
+    - (Shift) Right Click - Shift to the Next (Previous) applicant.
+    ![ss5](/screenshots/5.PNG?raw=true "Decline Queue")
 
-**Added UI Elements**
-* Filter applicants to your group while also being able to view filtered applicants and declining each one with one button.
-* Filter out listings with no open spot for your current role.
-* Filter group listings by Mythic Plus Rating (Useful for hiding LFG spam listings).
-* ❗Filter group applicants by class and/or Mythic Plus Rating.
-* Filter results by dungeon while also being able to use the normal search box for key level.
+**Addon Features**
+All LFM+ functions apply ONLY to M+ dungeon listings.
+- "Find a Group" Frame
+    - Filter listings with no open spot for your current role.
+    - Filter listings by Mythic Plus Rating
+        - If you set the filter to a minimum of 100 rating, it will filter most LFG spam listings.
+    - Using the addons built in dungeon selection dropdown, you can chose any combination of dungeons you would like to see.
+        - This allows you to use the actual search box for other things, such as key level.
+    - Listings will always show the role/class icons, even if you have applied to it.
+    ![ss2](/screenshots/2.PNG?raw=true "Dungeon Dropdown")
+    ![ss3](/screenshots/3.PNG?raw=true "Listing Enhancements")
+- "Applicant" Frame
+    - Filter applicants by class and/or Mythic Plus Rating.
+        - Filtered applicants are added to a "Decline Queue" that can be viewed and processed by hovering over the applicable button in the LFM+ frame.
+        - Left Click to decline.
+        - Shift-Left click to to exempt the group from filter criteria.
+        - Right click to goto the next applicant.
+        - Shift-Right click to goto the previous applicant.
+        ![ss5](/screenshots/5.PNG?raw=true "Decline Queue")
+    - Applicant scores are shortened and the highest scoring key completed is shown next to the score.
+    ![ss4](/screenshots/4.PNG?raw=true "Class Selection")
+- Default UI Enhancements
+    "Most" settings can be toggled. If there is currently no option to toggle a specific setting, it will be added.
+    - Always show groups or applicants who are guild members, regardless of filters.
+    - The dungeon of your current keystone will be automatically selected when creating a group.
+    - Listings in the "Find a Group" will have the role icons replaced by the applicable class in that role with a smaller role icon attached to it.
+        - Smaller role icons are only shown for Tanks and Healers.
+    - Add the M+ rating for the group leader to listing names.
+    - Add the server of the group leader to each listing (attached to the end of the dungeon name.)
+    - Shorten dungeon names in listings.
+    - Double click on a listing to sign up.
+        - Auto focus the Sign Up window text box.
+        - Pressing enter after with the sign up box opened will finialize the sign up.
+    - Double Click on activity categories to open the next frame.
+    - Shift-Click on activity categories to start a group.
+    - Remove the shading overlay from the applicant viewer when you are not the leader.
 
-**Default UI Enhancements**
 
-* Groups with friends and guild members will always show, regardless of filter settings.
-* The dungeon for the key currently present in your bag will be automatically selected from the dropped down when creating a group.
-* The class of each role currently in the listings group is represented as a bar below the respective icon.
-* The dungeon rating of the group leader added to the listing.
-* Server name added to the listing.
-* ❗Specify players/realms to be flagged or filtered out.
-* Dungeon names shortened to save space.
-* Double-Click on listings to apply.
 
-**Bug List**
-- Scaling
-- Element placement (mainly in the upper left corner of the LFGListFrame window.)
-
-**TODO**
-- Add UI setting for enableLFGDropdown
-- Add option for viewing group listings while your current group is listed.
-
-**Release Automation**
-------
-**Requirements**
-- Configured GitHub CLI (gh auth login)
-- PowerShell
-- Updated notes in RELEASE.MD
-
-**Command**: ```$tag = "vX.Y.Z"; $notes="Testing Release"; .\createZip.ps1```
-
-**Notes**
-- Replace "vX.Y.Z" with whatever tag you would like.
-- `-d` and `-p` flags can be added to the commands in the script to create a draft or prerelease
-    - TODO: Update script to support passing from script paramaters.
-
-**Results**:
-- A zip will be created in the `.\releases\` directory with the name `LFM+_vX.Y.Z.zip`
-- If configured, a release will be created on GitHub with the same `vX.Y.Z` tag using the notes from `RELEASE.MD` and the ZIP file that was created will be attached to the created release.
+**WIP Enhancement/Features**
+* Better localization support.
+* More applicant filters
+    - Only allow needed roles.
+        - This would mean that if you only had a spot for a healer, any DPS would be added to the decline queue.
+        - Groups with multiple players would need to be able to fit in your group.
+            - If a group of 3 DPS applies and you only need 2 DPS, that applicant will be added to the decline queue.
+    - Specify DPS type
+        - Ranged/Melee/Spell Caster
+    - Specify Utility
+        - Lust/Brez/Immunity/ect
+* Specify players/realms to be flagged or filtered out.
+    - Via right click on unit frames, search listings or applications.
+* Better/more reliable decline queue processing.
+* Ability to track players you have done keys with and record notes that can be referenced when you see that player again.
+* Ability to view listings while also being listed.
+* Ability to add a realm and/or player to the addons internal flagging list.
+* User specified short names for dungeons.
+* Scaling
 
 **This addon does NOT use rating data from the RaiderIO addon and does NOT require the RaiderIO addon to be installed. Support for RaiderIO scoring/colors is possible option if the demand is high enough.**
-
-**Screenshots** (These where taken with ElvUI enabled. Will update in the future to show more vanilla examples.)
-![ss1](/screenshots/1.PNG?raw=true "Search Results")
-![ss2](/screenshots/2.PNG?raw=true "Options")
-![ss3](/screenshots/3.PNG?raw=true "Options")
-![ss4](/screenshots/4.PNG?raw=true "Options")
