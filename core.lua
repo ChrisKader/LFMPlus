@@ -49,7 +49,7 @@ LFMPlus.isLeader = false
 LFMPlus.eligibleApplicantList = {}
 LFMPlus.newEligibleApplicant = false
 
-ns.CONSTANTS = {
+ns.constants = {
     ratingMin = 0,
     ratingMax = 3500,
     atlas = {
@@ -155,7 +155,7 @@ function LFMPlus:formatMPlusRating(score)
     -- If the score is less than 1000, we simply store it in the shortScore variable.
 
     local shortScore = score >= 1000 and string.format("%3.2f", score/1000):sub(1,3) .. "k" or score
-    shortScore = string.format(ns.CONSTANTS.lengths.score,shortScore)
+    shortScore = string.format(ns.constants.lengths.score,shortScore)
     local formattedScore = C_ChallengeMode.GetDungeonScoreRarityColor(score):WrapTextInColorCode(shortScore)
     return formattedScore
 end
@@ -528,7 +528,7 @@ function LFMPlus:removeFilteredId(id)
 
     if idLoc then
         tremove(LFMPlusFrame.filteredIDs,idLoc)
-        if idLoc <= ns.CONSTANTS.declineQueueMax then
+        if idLoc <= ns.constants.declineQueueMax then
             LFMPlusFrame:ShiftDeclineSelection(false)
         end
     end
@@ -639,7 +639,7 @@ local function EventHandler(event, ...)
 end
 
 -- Register Events
-for k,v in pairs(ns.CONSTANTS.trackedEvents) do
+for k,v in pairs(ns.constants.trackedEvents) do
     if v then
         LFMPlus:RegisterEvent(k,EventHandler);
     end
@@ -669,7 +669,7 @@ function LFMPlus:GetDungeonList()
                 if fullName:find(challMap.name) then
                     local dungeon = challMap
                     dungeon.activityID = activityID
-                    dungeon.shortName = ns.CONSTANTS.actvityInfo[activityID].shortName or fullName
+                    dungeon.shortName = ns.constants.actvityInfo[activityID].shortName or fullName
                     dungeon.checked = false
                     LFMPlusFrame.dungeonList[activityID] = dungeon
                     dropdownList[activityID] = challMap.name
@@ -922,8 +922,8 @@ local SearchEntryUpdate = function(entry)
         entry.ActivityName:SetWordWrap(false)
     end
 
-    if db.shortenActivityName and ns.CONSTANTS.actvityInfo[resultInfo.activityID] then
-        entry.ActivityName:SetText(ns.CONSTANTS.actvityInfo[resultInfo.activityID].shortName .. " (M+)")
+    if db.shortenActivityName and ns.constants.actvityInfo[resultInfo.activityID] then
+        entry.ActivityName:SetText(ns.constants.actvityInfo[resultInfo.activityID].shortName .. " (M+)")
         entry.ActivityName:SetWordWrap(false)
     end
 
@@ -1095,7 +1095,7 @@ function LFMPlus:DeclineButtonTooltip()
     GameTooltip:SetOwner(LFMPlusFrame.declineButton, "ANCHOR_BOTTOMLEFT")
     GameTooltip_SetTitle(GameTooltip,"LFM+ Decline Queue")
     GameTooltip:AddLine(CreateTextureMarkup(918860,1, 1, 200, 5, 0, 1, 0, 1),1,1,1,false)
-    for i=1,ns.CONSTANTS.declineQueueMax do
+    for i=1,ns.constants.declineQueueMax do
         if LFMPlusFrame.filteredIDs[i] and LFMPlusFrame.declineButtonInfo[LFMPlusFrame.filteredIDs[i]]then
            for memberIdx,memberString in pairs(LFMPlusFrame.declineButtonInfo[LFMPlusFrame.filteredIDs[i]]) do
                 GameTooltip:AddLine(memberString,nil,nil,nil, false)
@@ -1306,7 +1306,7 @@ local function InitializeUI()
             if (not LFMPlus.mPlusListed) then
                 LFMPlusFrame.declineButton:SetText(0)
             else
-                for i=1,ns.CONSTANTS.declineQueueMax do
+                for i=1,ns.constants.declineQueueMax do
                     if not self.filteredIDs[i] then
                         break
                     end
@@ -1317,11 +1317,11 @@ local function InitializeUI()
                         for memberIdx=1,applicantData.numMembers do
                             local name, className, _, _, _, _, tank, healer, damage, _, _, dungeonScore  = C_LFGList.GetApplicantMemberInfo(applicantID, memberIdx)
                             local shortName, server = LFMPlus:GetNameRealm(name)
-                            local formattedName = RAID_CLASS_COLORS[className]:WrapTextInColorCode(string.format(ns.CONSTANTS.lengths.name,shortName))
+                            local formattedName = RAID_CLASS_COLORS[className]:WrapTextInColorCode(string.format(ns.constants.lengths.name,shortName))
                             local roleIcons = string.format("%s%s%s", CreateAtlasMarkup(tank and "roleicon-tiny-tank" or "groupfinder-icon-emptyslot", 10,10), CreateAtlasMarkup(healer and "roleicon-tiny-healer" or "groupfinder-icon-emptyslot", 10,10), CreateAtlasMarkup(damage and "roleicon-tiny-dps" or "groupfinder-icon-emptyslot", 10,10))
 
                             local header = CreateAtlasMarkup(((applicantID == self.nextAppDecline and memberIdx==1) and "pvpqueue-sidebar-nextarrow" or ""), 10,10)
-                            local memberString = string.format("%s%s %s %s %s", header, LFMPlus:formatMPlusRating(dungeonScore), roleIcons, formattedName, string.format(ns.CONSTANTS.lengths.server,server))
+                            local memberString = string.format("%s%s %s %s %s", header, LFMPlus:formatMPlusRating(dungeonScore), roleIcons, formattedName, string.format(ns.constants.lengths.server,server))
                             table.insert(groupEntry,memberString)
                         end
                         self.declineButtonInfo[applicantID] = groupEntry
@@ -1359,14 +1359,14 @@ local function InitializeUI()
                 local prevId = LFMPlusFrame.filteredIDs[i - 1]
 
                 if LFMPlusFrame.nextAppDecline == id then
-                    if direction == true and (nextId and (i + 1 <= ns.CONSTANTS.declineQueueMax)) then
+                    if direction == true and (nextId and (i + 1 <= ns.constants.declineQueueMax)) then
                         newVal = nextId
                         break
                     elseif direction == false then
                         if prevId then
                             newVal = prevId
                         else
-                            newVal = LFMPlusFrame.filteredIDs[ns.CONSTANTS.declineQueueMax] or LFMPlusFrame.filteredIDs[#LFMPlusFrame.filteredIDs]
+                            newVal = LFMPlusFrame.filteredIDs[ns.constants.declineQueueMax] or LFMPlusFrame.filteredIDs[#LFMPlusFrame.filteredIDs]
                         end
                         break
                     end
@@ -1460,10 +1460,10 @@ local function InitializeUI()
         f.scoreMinFrame.Value:ClearAllPoints()
         f.scoreMinFrame.Value:SetPoint("TOP", f.scoreMinFrame, "BOTTOM", 0, 3)
 
-        f.scoreMinFrame:SetMinMaxValues(ns.CONSTANTS.ratingMin, ns.CONSTANTS.ratingMax);
+        f.scoreMinFrame:SetMinMaxValues(ns.constants.ratingMin, ns.constants.ratingMax);
         f.scoreMinFrame:SetDisplayValue(db.ratingFilterMin)
-        f.scoreMinFrame.Low:SetText(LFMPlus:formatMPlusRating(ns.CONSTANTS.ratingMin))
-        f.scoreMinFrame.High:SetText(LFMPlus:formatMPlusRating(ns.CONSTANTS.ratingMax))
+        f.scoreMinFrame.Low:SetText(LFMPlus:formatMPlusRating(ns.constants.ratingMin))
+        f.scoreMinFrame.High:SetText(LFMPlus:formatMPlusRating(ns.constants.ratingMax))
 
         f:Hide()
         f.frames.search["scoreMinFrame"] = true
@@ -1479,7 +1479,7 @@ local function InitializeUI()
                     if UnitGUID("player") == guid then
                         LFMPlus:UnregisterEvent("INSPECT_READY")
                         local role = GetSpecializationRoleByID(GetInspectSpecialization("player"))
-                        local roleAtlas = ns.CONSTANTS.atlas[role] or ns.CONSTANTS.atlas.NA
+                        local roleAtlas = ns.constants.atlas[role] or ns.constants.atlas.NA
                         self.roleIcon:SetText(CreateAtlasMarkup(roleAtlas, 25, 25))
                     end
                 end)
@@ -1824,7 +1824,7 @@ function LFMPlus:RunHooks()
             if panel.selectedCategory == 2 then
                 local _, mapID = C_ChallengeMode.GetMapUIInfo(C_MythicPlus.GetOwnedKeystoneChallengeMapID())
                 if mapID then
-                    LFGListEntryCreation_Select(LFGListFrame.EntryCreation, nil, nil, nil, ns.CONSTANTS.mapInfo[mapID].activityId);
+                    LFGListEntryCreation_Select(LFGListFrame.EntryCreation, nil, nil, nil, ns.constants.mapInfo[mapID].activityId);
                 end
             end
         end)
