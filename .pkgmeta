@@ -20,3 +20,4 @@ ignore:
   - README.md
   - logo.jpg
   - screenshots
+  - libs
