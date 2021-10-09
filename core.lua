@@ -729,11 +729,11 @@ local SortSearchResults = function(results)
     local FilterSearchResults = function(searchResultID)
         local searchResultInfo = C_LFGList.GetSearchResultInfo(searchResultID)
 
-        local _,realmName = LFMPlus:GetNameRealm(searchResultInfo.leaderName, true)
+--[[         local _,realmName = LFMPlus:GetNameRealm(searchResultInfo.leaderName, true)
 
         if not db.realmList[realmName] then
             db.realmList[realmName] = true
-        end
+        end ]]
 
         if searchResultInfo then
             -- Never filter listings with friends or guildies.
