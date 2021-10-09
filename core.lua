@@ -46,6 +46,7 @@ ns.Init = false;
 LFMPlus.mPlusListed = false
 LFMPlus.mPlusSearch = false
 LFMPlus.isLeader = false
+LFMPlus.eligibleApplicantList = {}
 LFMPlus.newEligibleApplicant = false
 
 ns.CONSTANTS = {
@@ -515,10 +516,14 @@ local function getIndex(values, val)
     return index[val]
 end
 
-function LFMPlus:removeFilteredId(id)
+function LFMPlus:RemoveApplicantId(id)
     LFMPlusFrame.declineButtonInfo[id] = nil
     LFMPlus.eligibleApplicantList[id] = nil
+    LFMPlusFrame.exemptIDs[id] = nil
+    LFMPlus:removeFilteredId(id)
+end
 
+function LFMPlus:removeFilteredId(id)
     local idLoc = LFMPlusFrame:FindFilteredId(id)
 
     if idLoc then
@@ -555,7 +560,7 @@ function LFMPlus:filterTable(t, ids)
                 tinsert(LFMPlusFrame.filteredIDs,id)
                 table.sort(LFMPlusFrame.filteredIDs)
                 if LFMPlus.mPlusListed then
-                    LFMPlus:RefreshDeclineButton()
+                    LFMPlusFrame:UpdateDeclineButtonInfo()
                 end
                 break
             end
@@ -585,7 +590,7 @@ function LFMPlus:checkPlayer(player)
     end
 end
 
-ns.DEBUG_ENABLED = true;
+ns.DEBUG_ENABLED = false;
 
 local function EventHandler(event, ...)
     if event == "PLAYER_SPECIALIZATION_CHANGED" then
@@ -599,14 +604,8 @@ local function EventHandler(event, ...)
         local applicantID = ...
         if applicantID then
             local applicantInfo = C_LFGList.GetApplicantInfo(applicantID)
-            if applicantInfo then
-                if applicantInfo.applicationStatus ~= "applied" and applicantInfo.applicationStatus ~= "invited" and applicantInfo.applicationStatus ~= "inviteaccepted" then
-                    if (LFMPlusFrame:FindFilteredId(applicantID) or LFMPlusFrame.exemptIDs[applicantID] or LFMPlus.eligibleApplicantList[applicantID]) then
-                        LFMPlus:removeFilteredId(applicantID);
-                        LFMPlus:removeExemptId(applicantID);
-                        LFMPlus.eligibleApplicantList[applicantID] = nil
-                    end
-                end
+            if applicantInfo and (applicantInfo.applicationStatus ~= "applied") and (applicantInfo.applicationStatus ~= "invited") and (applicantInfo.applicationStatus ~= "inviteaccepted") then
+                LFMPlus:RemoveApplicantId(applicantID)
             end
         end
     end
@@ -730,7 +729,7 @@ local SortSearchResults = function(results)
     local FilterSearchResults = function(searchResultID)
         local searchResultInfo = C_LFGList.GetSearchResultInfo(searchResultID)
 
-        local _,realmName = LFMPlus:GetNameRealm(searchResultInfo.leaderName)
+        local _,realmName = LFMPlus:GetNameRealm(searchResultInfo.leaderName, true)
 
         if not db.realmList[realmName] then
             db.realmList[realmName] = true
@@ -1037,7 +1036,7 @@ local SortApplicants = function(applicants)
     end
 
     LFMPlusFrame.totalResults = #applicants
-    LFMPlus:RefreshDeclineButton()
+    LFMPlusFrame:UpdateDeclineButtonInfo()
 end
 
 local UpdateApplicantMember = function(member, appID, memberIdx, status, pendingStatus, ...)
@@ -1096,42 +1095,16 @@ function LFMPlus:DeclineButtonTooltip()
     GameTooltip:SetOwner(LFMPlusFrame.declineButton, "ANCHOR_BOTTOMLEFT")
     GameTooltip_SetTitle(GameTooltip,"LFM+ Decline Queue")
     GameTooltip:AddLine(CreateTextureMarkup(918860,1, 1, 200, 5, 0, 1, 0, 1),1,1,1,false)
-    if table.maxn(LFMPlusFrame.declineButtonInfo) > 0 then
-        for i,applicantID in pairs(LFMPlusFrame.filteredIDs) do
-            if i <= ns.CONSTANTS.declineQueueMax then
-                for _,memberString in pairs(LFMPlusFrame.declineButtonInfo[applicantID]) do
-                    GameTooltip:AddLine(memberString,nil,nil,nil, false)
-                end
-                GameTooltip:AddLine(CreateTextureMarkup(918860,1, 1, 200, 5, 0, 1, 0, 1),1,1,1,false)
+    for i=1,ns.CONSTANTS.declineQueueMax do
+        if LFMPlusFrame.filteredIDs[i] and LFMPlusFrame.declineButtonInfo[LFMPlusFrame.filteredIDs[i]]then
+           for memberIdx,memberString in pairs(LFMPlusFrame.declineButtonInfo[LFMPlusFrame.filteredIDs[i]]) do
+                GameTooltip:AddLine(memberString,nil,nil,nil, false)
             end
+            GameTooltip:AddLine(CreateTextureMarkup(918860,1, 1, 200, 5, 0, 1, 0, 1),1,1,1,false)
         end
-        GameTooltip_SetBottomText(GameTooltip,"+22 More")
-    else
-        GameTooltip:AddLine("No Applicants Filtered")
     end
     GameTooltip_AddInstructionLine(GameTooltip,"Click: Decline (Left), Allow (S-Left), Next (Right), Previous (S-Right)")
     GameTooltip:Show()
-end
-
-function LFMPlus:RefreshDeclineButton()
-    if not LFMPlus.mPlusListed then
-        return
-    end
-    LFMPlusFrame:GetDeclineList()
-
-    if ((db.ratingFilter or db.classFilter) and (LFMPlusFrame.nextAppDecline and C_LFGList.GetApplicantInfo(LFMPlusFrame.nextAppDecline))) then
-        LFMPlusFrame.declineButton:SetAttribute("shift-macrotext1", string.format("/script LFMPlusFrame:ExcludeApp(%s)", tostring(LFMPlusFrame.nextAppDecline)))
-        LFMPlusFrame.declineButton:SetAttribute("macrotext1", string.format("/script LFMPlusFrame:DeclineApp(%s)", tostring(LFMPlusFrame.nextAppDecline)))
-    else
-        LFMPlusFrame.declineButton:SetAttribute("shift-macrotext1", "/script LFMPlusFrame:ShiftDeclineSelection()")
-        LFMPlusFrame.declineButton:SetAttribute("macrotext1", "/script LFMPlusFrame:ShiftDeclineSelection()")
-    end
-
-    LFMPlusFrame.declineButton:SetText((#LFMPlusFrame.filteredIDs > 0 and LFMPlusFrame.nextAppDecline) and GREEN_FONT_COLOR:WrapTextInColorCode(tostring(#LFMPlusFrame.filteredIDs)) or 0)
-
-    if GameTooltip:IsShown() and (GameTooltip:GetOwner():GetName() == "LFMPlusFrame.declineButton") then
-        LFMPlus:DeclineButtonTooltip()
-    end
 end
 
 function LFMPlus:AddToFilter(name,realm)
@@ -1328,24 +1301,36 @@ local function InitializeUI()
 
         f.nextAppDecline = nil
 
-        function f:GetDeclineList()
-            local i = 0
-            for _,v in ipairs(self.filteredIDs) do
-                local applicantID = v
-                local applicantData = C_LFGList.GetApplicantInfo(applicantID)
-                if applicantData and i <= ns.CONSTANTS.declineQueueMax then
-                    self.declineButtonInfo[applicantID] = {}
-                    for memberIdx=1,applicantData.numMembers do
-                        local name, className, _, _, _, _, tank, healer, damage, _, _, dungeonScore  = C_LFGList.GetApplicantMemberInfo(applicantID, memberIdx)
-                        local shortName, server = LFMPlus:GetNameRealm(name)
-                        local formattedName = RAID_CLASS_COLORS[className]:WrapTextInColorCode(string.format(ns.CONSTANTS.lengths.name,shortName))
-                        local roleIcons = string.format("%s%s%s", CreateAtlasMarkup(tank and "roleicon-tiny-tank" or "groupfinder-icon-emptyslot", 10,10), CreateAtlasMarkup(healer and "roleicon-tiny-healer" or "groupfinder-icon-emptyslot", 10,10), CreateAtlasMarkup(damage and "roleicon-tiny-dps" or "groupfinder-icon-emptyslot", 10,10))
+        function f:UpdateDeclineButtonInfo()
+            self.declineButtonInfo = {}
+            if (not LFMPlus.mPlusListed) then
+                LFMPlusFrame.declineButton:SetText(0)
+            else
+                for i=1,ns.CONSTANTS.declineQueueMax do
+                    if not self.filteredIDs[i] then
+                        break
+                    end
+                    local applicantID = self.filteredIDs[i]
+                    local applicantData = C_LFGList.GetApplicantInfo(applicantID)
+                    if applicantData then
+                        local groupEntry = {}
+                        for memberIdx=1,applicantData.numMembers do
+                            local name, className, _, _, _, _, tank, healer, damage, _, _, dungeonScore  = C_LFGList.GetApplicantMemberInfo(applicantID, memberIdx)
+                            local shortName, server = LFMPlus:GetNameRealm(name)
+                            local formattedName = RAID_CLASS_COLORS[className]:WrapTextInColorCode(string.format(ns.CONSTANTS.lengths.name,shortName))
+                            local roleIcons = string.format("%s%s%s", CreateAtlasMarkup(tank and "roleicon-tiny-tank" or "groupfinder-icon-emptyslot", 10,10), CreateAtlasMarkup(healer and "roleicon-tiny-healer" or "groupfinder-icon-emptyslot", 10,10), CreateAtlasMarkup(damage and "roleicon-tiny-dps" or "groupfinder-icon-emptyslot", 10,10))
 
-                        local header = CreateAtlasMarkup(((applicantID == self.nextAppDecline and memberIdx==1) and "pvpqueue-sidebar-nextarrow" or ""), 10,10)
-                        self.declineButtonInfo[applicantID][memberIdx] = string.format("%s%s %s %s %s", header, LFMPlus:formatMPlusRating(dungeonScore), roleIcons, formattedName, string.format(ns.CONSTANTS.lengths.server,server))
+                            local header = CreateAtlasMarkup(((applicantID == self.nextAppDecline and memberIdx==1) and "pvpqueue-sidebar-nextarrow" or ""), 10,10)
+                            local memberString = string.format("%s%s %s %s %s", header, LFMPlus:formatMPlusRating(dungeonScore), roleIcons, formattedName, string.format(ns.CONSTANTS.lengths.server,server))
+                            table.insert(groupEntry,memberString)
+                        end
+                        self.declineButtonInfo[applicantID] = groupEntry
                     end
                 end
-                i = i + 1
+                LFMPlusFrame.declineButton:SetText(#LFMPlusFrame.filteredIDs > 0 and GREEN_FONT_COLOR:WrapTextInColorCode(tostring(#LFMPlusFrame.filteredIDs)) or 0)
+                if GameTooltip:IsShown() and (GameTooltip:GetOwner():GetName() == "LFMPlusFrame.declineButton") then
+                    LFMPlus:DeclineButtonTooltip()
+                end
             end
         end
 
@@ -1362,8 +1347,14 @@ local function InitializeUI()
             local newVal = nil
 
             for i=1,#LFMPlusFrame.filteredIDs do
-
                 local id = LFMPlusFrame.filteredIDs[i]
+
+                if ((LFMPlusFrame.nextAppDecline == id) or (LFMPlusFrame.nextAppDecline == nil)) and direction == nil then
+                    LFMPlusFrame.nextAppDecline = id
+                    LFMPlusFrame:UpdateDeclineButtonInfo()
+                    return
+                end
+
                 local nextId = LFMPlusFrame.filteredIDs[i + 1]
                 local prevId = LFMPlusFrame.filteredIDs[i - 1]
 
@@ -1382,33 +1373,34 @@ local function InitializeUI()
                 end
             end
 
-            if newVal == nil and LFMPlusFrame.filteredIDs[1] then
+            if (newVal == nil and LFMPlusFrame.filteredIDs[1]) then
                 newVal = LFMPlusFrame.filteredIDs[1]
             end
             LFMPlusFrame.nextAppDecline = newVal
-            LFMPlus:RefreshDeclineButton()
+            LFMPlusFrame:UpdateDeclineButtonInfo()
         end
 
-        function f:ExcludeApp(id)
-            if id then
-                LFMPlus:excludeFilteredId(id)
-                LFMPlusFrame:ShiftDeclineSelection(false)
-                LFGListFrame.activePanel.RefreshButton:Click()
-            end
-        end
-
-        function f:DeclineApp(applicantID)
-            if applicantID then
-                local applicantInfo = C_LFGList.GetApplicantInfo(applicantID)
+        function f:ProcessFilteredApp(action)
+            -- If the applicant status is anything other than invited or applied it means thier listing is "inactive".
+            -- This would be indicated by the default UI as faded entry in the scroll from and happens when an application
+            -- expires due to time, the applicant cancels their own application or the applicant gets invited to another group.
+            -- At this point, RemoveApplicant is simply clearing the application from the list versus actually declining it like DeclineApplicant.
+            if LFMPlusFrame.nextAppDecline then
+                local applicantInfo = C_LFGList.GetApplicantInfo(LFMPlusFrame.nextAppDecline)
                 if applicantInfo then
-                    local ack = applicantInfo.applicationStatus~='applied' and applicantInfo.applicationStatus~='invited'
-                    if ack then
-                        C_LFGList.RemoveApplicant(applicantID)
-                    else
-                        C_LFGList.DeclineApplicant(applicantID)
+                    local inactiveApplication = (applicantInfo.applicationStatus~='applied' and applicantInfo.applicationStatus~='invited')
+                    if action == "decline" and LFMPlus.isLeader then
+                        if inactiveApplication then
+                            C_LFGList.RemoveApplicant(LFMPlusFrame.nextAppDecline)
+                        else
+                            C_LFGList.DeclineApplicant(LFMPlusFrame.nextAppDecline)
+                        end
+                        LFMPlus:RemoveApplicantId(LFMPlusFrame.nextAppDecline)
+                    elseif action == "exclude" then
+                        LFMPlus:excludeFilteredId(LFMPlusFrame.nextAppDecline)
+                        LFGListFrame.activePanel.RefreshButton:Click();
                     end
                 end
-                LFMPlus:removeFilteredId(applicantID)
             end
         end
 
@@ -1696,35 +1688,30 @@ local function InitializeUI()
 
     --Create Application Decline Button
     do
-        LFMPlusFrame.declineButton = CreateFrame("Button", "$parent.declineButton", LFMPlusFrame, "SecureActionButtonTemplate")
-        local f = LFMPlusFrame.declineButton
+        local f = CreateFrame("Button", "$parent.declineButton", LFMPlusFrame, "UIPanelButtonTemplate")
+        f.app = nil
         f:SetFrameLevel(1)
         f:SetFrameStrata("HIGH")
         f:SetPoint("CENTER", LFMPlusFrame.activeRoleFrame, "CENTER", 0, 0)
-        f:SetAttribute("type1", "macro")
-        f:SetAttribute("macrotext1", "/script LFMPlusFrame:DeclineApp()")
-        f:SetAttribute("shift-type1", "macro")
-        f:SetAttribute("shift-macrotext1", "/script LFMPlusFrame:ExcludeApp()");
-        f:SetAttribute("type2", "macro")
-        f:SetAttribute("macrotext2", "/script LFMPlusFrame:ShiftDeclineSelection(true)")
-        f:SetAttribute("shift-type2", "macro")
-        f:SetAttribute("shift-macrotext2", "/script LFMPlusFrame:ShiftDeclineSelection(false)")
-        f:RegisterForClicks("LeftButtonUp","RightButtonUp");
+        f:RegisterForClicks("LeftButtonDown","RightButtonDown");
         f:SetSize(32,32);
         f:SetText("0")
         f:SetNormalFontObject("GameFontNormalSmall")
-        f:SetNormalTexture("Interface/Buttons/UI-SquareButton-Up")
-        f:SetHighlightTexture("Interface/Buttons/UI-Common-MouseHilight")
-        f:SetPushedTexture("Interface/Buttons/UI-SquareButton-Down")
-        f:SetScript("OnEnter", function(s)
-            LFMPlus:DeclineButtonTooltip()
+        f:SetScript("OnClick",function(s, b, d)
+            if b == "LeftButton" then
+                LFMPlusFrame:ProcessFilteredApp(IsShiftKeyDown() and "exclude" or "decline")
+            elseif b == "RightButton" then
+                LFMPlusFrame:ShiftDeclineSelection(IsShiftKeyDown() and false)
+            end
         end)
-        f:SetScript("OnShow",function(s)
+        f:SetScript("OnEnter", function(s)
             LFMPlusFrame:ShiftDeclineSelection()
+            LFMPlus:DeclineButtonTooltip()
         end)
         f:SetScript("OnLeave", GameTooltip_Hide)
         f:Hide()
 
+        LFMPlusFrame.declineButton = f
         LFMPlusFrame.frames.app["declineButton"] = true
     end
 end

@@ -1,19 +1,3 @@
-- Application Functionality Implemented
-    - Filter out applicants based on rating or class.
-    - Filtered applicants are shown in a tooltip over the Decline Queue button at the left of the LFM+ frame.
-    - Button Control
-        - All actions are against the current applicant (single or group) selected with the ">" in the buttons tooltip.
-        - (Shift) Left Click - (Add to exempt list) Decline
-            - Adding to the exempt list will allow the applicant to be shown in the main scroll frame, even if it doesnt meant the filter requirements.
-        - (Shift) Right Click - (Previous) Next applicant.
-- UI Enhancements
-    - Double Clicking on a Category Button (Questing/Dungeons/Ect) will open the search panel for that respective button.
-        - Shift-Double Click will open "Start a Group" frame.
-    - Double Clicking search results in the "Dungeons and Raids" group search will open up the role selection/note window.
-        - The note box will be auto focused and you can press enter to submit your note.
-    - When opening the "Start a Group" frame for Dungeons, the dungeon for the keystone currently in your bag will be auto selected.
-    - The group leader now has an indicator above thier role icon when viewing dungeon listings in "Find a Group".
-    - When "Show Class Details" is enanbled, role icons for entries in "Find A Group" are replaced with class icons.
-        - Small role icons are displayed over the class icons for healers and tanks.
-    - When listing a group, the minimap will only ping if applicants who pass your filters apply to the group.
-- Code Cleanup
+- Fixes to packaging script to actually include the libraries.
+- Updates to facilitate the removal of the SecureButton used for the decline group queue.
+- Bug fixes

@@ -39,4 +39,4 @@ jobs:
       - name: Package and release
         uses: BigWigsMods/packager@v1
         with:
-            args: -n "LFMPlus-{project-version}"
+            args: -n "LFMPlus-{project-version}" -m .pkgmeta
