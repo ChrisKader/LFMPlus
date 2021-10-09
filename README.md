@@ -27,8 +27,8 @@ All LFM+ functions apply ONLY to M+ dungeon listings.
         - If you set the filter to a minimum of 100 rating, it will filter most LFG spam listings.
     - Using the addons built in dungeon selection dropdown, you can chose any combination of dungeons you would like to see.
         - This allows you to use the actual search box for other things, such as key level.
-    - Listings will always show the role/class icons, even if you have applied to it.
     ![ss2](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/2.png?raw=true "Dungeon Dropdown")
+    - Listings will always show the role/class icons, even if you have applied to it.
     ![ss3](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/3.png?raw=true "Listing Enhancements")
 - "Applicant" Frame
     - Filter applicants by class and/or Mythic Plus Rating.
