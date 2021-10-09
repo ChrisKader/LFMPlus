@@ -1,13 +1,15 @@
 This addon enhances the default LFG UI for Mythic+ listings with more details and provides a few quality-of-life improvements.
 
-**Addon Layout**
-![ss1](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/1.png?raw=true "Addon Frame")
+**Addon Layout**  
+   ![ss1](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/1.png?raw=true "Addon Frame")
 - Active Role Filter
     - When enabled, only listings with a spot open for your current role are shown.
     - Updated when you change specs.
-- Dungeon/Class Dropdown
-    - Filter listings (or applicants) for desired dungeons or classes.
+- Dungeon Dropdown
+    - Filter listings by dungeon.  
     ![ss2](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/2.png?raw=true "Dungeon Dropdown")
+- Class Dropdown
+    - Filter applicants by class.  
     ![ss4](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/6.png?raw=true "Class Selection")
 - Minimum Score Slider
     - Change the minimum score required for group listings or applicants.
@@ -16,7 +18,7 @@ This addon enhances the default LFG UI for Mythic+ listings with more details an
     - Any applicants who do not meet your filter requirements come here.
     - (Shift) Left Click - Decline (Exempt) applicant.
         - Decline or let applicants die in queue? Their fate is in your hands....
-    - (Shift) Right Click - Shift to the Next (Previous) applicant.
+    - (Shift) Right Click - Shift to the Next (Previous) applicant.  
     ![ss5](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/5.png?raw=true "Decline Queue")
 
 **Addon Features**
@@ -26,9 +28,9 @@ All LFM+ functions apply ONLY to M+ dungeon listings.
     - Filter listings by Mythic Plus Rating
         - If you set the filter to a minimum of 100 rating, it will filter most LFG spam listings.
     - Using the addons built in dungeon selection dropdown, you can chose any combination of dungeons you would like to see.
-        - This allows you to use the actual search box for other things, such as key level.
-    ![ss2](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/2.png?raw=true "Dungeon Dropdown")
-    - Listings will always show the role/class icons, even if you have applied to it.
+        - This allows you to use the actual search box for other things, such as key level.  
+        ![ss2](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/2.png?raw=true "Dungeon Dropdown")
+    - Listings will always show the role/class icons, even if you have applied to it.  
     ![ss3](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/3.png?raw=true "Listing Enhancements")
 - "Applicant" Frame
     - Filter applicants by class and/or Mythic Plus Rating.
@@ -36,9 +38,9 @@ All LFM+ functions apply ONLY to M+ dungeon listings.
         - Left Click to decline.
         - Shift-Left click to to exempt the group from filter criteria.
         - Right click to goto the next applicant.
-        - Shift-Right click to goto the previous applicant.
+        - Shift-Right click to goto the previous applicant.  
         ![ss5](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master//screenshots/5.png?raw=true "Decline Queue")
-    - Applicant scores are shortened and the highest scoring key completed is shown next to the score.
+    - Applicant scores are shortened and the highest scoring key completed is shown next to the score.  
     ![ss4](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master//screenshots/4.png?raw=true "Class Selection")
 - Default UI Enhancements
     "Most" settings can be toggled. If there is currently no option to toggle a specific setting, it will be added.
