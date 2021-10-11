@@ -2,5 +2,13 @@
     "Lua.runtime.version": "Lua 5.1",
     "Lua.completion.showParams": false,
     "Lua.completion.displayContext": 0,
-    "editor.tabSize": 2
+    "editor.tabSize": 2,
+    "Lua.workspace.ignoreDir": [
+      ".vscode",
+      ".libs",
+      ".luacheckrc"
+    ],
+    "Lua.workspace.library": [
+
+    ]
 }

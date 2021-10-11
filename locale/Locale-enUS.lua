@@ -29,9 +29,12 @@ L["Toggle the ability to double-click on LFG listings to bring up the sign-up di
 L["Auto Focus Sign Up Box"] = true
 L["Toggle the abiity to have description field of the Sign Up box auto focused when you sign up for a listing."] = true
 L["Sign Up On Enter"] = true
-L["Toggle the abiity to press the Sign Up button after pressing enter while typing in the description field when applying for listings."] = true
+L[
+    "Toggle the abiity to press the Sign Up button after pressing enter while typing in the description field when applying for listings."
+  ] = true
 L["Hide Application Viewer Overlay"] = true
-L["Toggle the ability to hide the overlay shown in the application viewer, even if you are not the group leader."] = true
+L["Toggle the ability to hide the overlay shown in the application viewer, even if you are not the group leader."] =
+  true
 L["Always Show Listing Roles"] = true
 L["Toggle the ability to show what slots have filled for an LFG listing, even if you have applied for it."] = true
 L["Filter by Mythic Plus Rating"] = true
@@ -49,13 +52,17 @@ L["Dungeon"] = true
 L["Populate from Default List"] = true
 L["Override the current realm list with one that is shipped with the addon."] = true
 L["Inclusive/Exclusive Realm List"] = true
-L["InclusiveExclusiveRealm"] = "Enabled for Inclusive, disable for Exclusive.\nInclusive applies settings ONLY to realms enabled below.\nExclusive applies settings to ANY realm NOT enabled below."
-L["InclusiveExclusivePlayer"] = "Enabled for Inclusive, disable for Exclusive.\nInclusive applies settings ONLY to players enabled below.\nExclusive applies settings to ANY player NOT enabled below."
+L["InclusiveExclusiveRealm"] =
+  "Enabled for Inclusive, disable for Exclusive.\nInclusive applies settings ONLY to realms enabled below.\nExclusive applies settings to ANY realm NOT enabled below."
+L["InclusiveExclusivePlayer"] =
+  "Enabled for Inclusive, disable for Exclusive.\nInclusive applies settings ONLY to players enabled below.\nExclusive applies settings to ANY player NOT enabled below."
 L["Filter"] = true
 L["Player Flag/Filter Options"] = true
 L["Options for indicating or filtering out specific players"] = true
 L["Inclusive/Exclusive Player List"] = true
-L["Enabled for Inclusive, disable for Exclusive. Inclusive applies settings ONLY to ALL Realms enabled below. Exclusive applies settings to ALL Realms NOT enabled below."] = true
+L[
+    "Enabled for Inclusive, disable for Exclusive. Inclusive applies settings ONLY to ALL Realms enabled below. Exclusive applies settings to ALL Realms NOT enabled below."
+  ] = true
 L["Flag players"] = true
 L["Toggle the ability to indicate if the player of an LFG listing or applicant is listed below."] = true
 L["Filter players"] = true
