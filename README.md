@@ -44,7 +44,7 @@ All LFM+ functions apply ONLY to M+ dungeon listings.
             ![ss8](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/8.png?raw=true "Role Icon over Class Color")  
         * Class Icon with Role Icon
             * Changes the default role icon to the class icon in that role with a role icon added.  
-            ![ss9](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/8.png?raw=true "Class Icon with Role Icon")  
+            ![ss9](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/9.png?raw=true "Class Icon with Role Icon")  
     * Listings will always show the role/class icons, even if you have applied to it.  
     ![ss3](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/10.png?raw=true "Listing Enhancements")  
 * **"Applicant" Frame**
