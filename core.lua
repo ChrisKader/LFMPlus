@@ -5,7 +5,7 @@ local LFMPlus = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "A
 local AceGUI = LibStub("AceGUI-3.0")
 local LFMPlusFrame = CreateFrame("Frame", "LFMPlusFrame", GroupFinderFrame, "TooltipBackdropTemplate")
 
-LFMPlusFrame:RegisterEvent("ADDON_LOADED");
+LFMPlusFrame:RegisterEvent("ADDON_LOADED")
 
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, false)
 
@@ -41,11 +41,11 @@ local defaults = {
         dungeonFilter = false,
         realmList = {},
         classRoleDisplay = "def",
-        showPartyLeader = false,
+        showPartyLeader = false
     }
 }
 
-ns.Init = false;
+ns.Init = false
 
 LFMPlus.mPlusListed = false
 LFMPlus.mPlusSearch = false
@@ -156,7 +156,7 @@ function LFMPlus:GetDungeonList()
             end
         end
     end
-    LFMPlusFrame.dungeonDropdownFrame:SetList(dropdownList);
+    LFMPlusFrame.dungeonDropdownFrame:SetList(dropdownList)
 end
 
 function LFMPlus:GetClassList()
@@ -209,7 +209,7 @@ end
 
 function LFMPlus:RefreshResults()
     if ns.Init then
-        if LFMPlus.mPlusSearch then LFGListSearchPanel_UpdateResultList(LFGListFrame.activePanel); end
+        if LFMPlus.mPlusSearch then LFGListSearchPanel_UpdateResultList(LFGListFrame.activePanel) end
         LFGListFrame.activePanel.RefreshButton:Click()
     end
 end
@@ -249,7 +249,7 @@ ns.DebugLog = function(text, type)
         else
             message = message
         end
-        print(messagePrefix .. message);
+        print(messagePrefix .. message)
     end
 end
 
@@ -259,13 +259,13 @@ ns.SecondHookRan = false
 
 local showTooltip = function(self)
     if (self.tooltipText ~= nil) then
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
-        GameTooltip_SetTitle(GameTooltip, self.tooltipText);
-        GameTooltip:Show();
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip_SetTitle(GameTooltip, self.tooltipText)
+        GameTooltip:Show()
     end
 end
 
-local hideTooltip = function() if GameTooltip:IsShown() then GameTooltip:Hide(); end end
+local hideTooltip = function() if GameTooltip:IsShown() then GameTooltip:Hide() end end
 
 local function getIndex(values, val)
     local index = {}
@@ -273,7 +273,7 @@ local function getIndex(values, val)
     return index[val]
 end
 
-ns.DEBUG_ENABLED = false;
+ns.DEBUG_ENABLED = false
 
 local function EventHandler(event, ...)
     if event == "PLAYER_SPECIALIZATION_CHANGED" then
@@ -294,9 +294,9 @@ local function EventHandler(event, ...)
     if event == "LFG_LIST_ACTIVE_ENTRY_UPDATE" or event == "GROUP_ROSTER_UPDATE" then
         local created = ...
         if C_LFGList.HasActiveEntryInfo() then
-            local activeEntryInfo = C_LFGList.GetActiveEntryInfo();
+            local activeEntryInfo = C_LFGList.GetActiveEntryInfo()
             if activeEntryInfo then
-                local _, _, _, _, _, _, _, _, _, _, _, _, isMythicPlusActivity = C_LFGList.GetActivityInfo(activeEntryInfo.activityID);
+                local _, _, _, _, _, _, _, _, _, _, _, _, isMythicPlusActivity = C_LFGList.GetActivityInfo(activeEntryInfo.activityID)
                 if isMythicPlusActivity then
                     LFMPlus.mPlusListed = true
                     LFMPlus.mPlusSearch = false
@@ -318,7 +318,7 @@ local function EventHandler(event, ...)
 end
 
 -- Register Events
-for k, v in pairs(ns.constants.trackedEvents) do if v then LFMPlus:RegisterEvent(k, EventHandler); end end
+for k, v in pairs(ns.constants.trackedEvents) do if v then LFMPlus:RegisterEvent(k, EventHandler) end end
 
 local SortSearchResults = function(results)
 
@@ -443,11 +443,9 @@ local SearchEntryUpdate = function(entry)
     -- Hide any additional frames that may have been created if the player changes to the default view.
     if db.classRoleDisplay == "def" then
         local numMembers = resultInfo.numMembers
-        for i=1,numMembers do
-            local iconFrame = entry.DataDisplay.Enumerate["Icon"..(5 - i) + 1]
-            for _,v in ipairs(ns.constants.searchEntryFrames) do
-                if iconFrame[v] then iconFrame[v]:Hide() end
-            end
+        for i = 1, numMembers do
+            local iconFrame = entry.DataDisplay.Enumerate["Icon" .. (5 - i) + 1]
+            for _, v in ipairs(ns.constants.searchEntryFrames) do if iconFrame[v] then iconFrame[v]:Hide() end end
         end
         if entry.DataDisplay.Enumerate.leader then entry.DataDisplay.Enumerate.leader:Hide() end
     else
@@ -459,7 +457,7 @@ local SearchEntryUpdate = function(entry)
             local leader = i == 1 or false
             local orderIndex = getIndex(LFG_LIST_GROUP_DATA_ROLE_ORDER, role)
             -- Insert the orderIndex of the role (Tank, Healer, DPS) along with the class, group leader indicator and role.
-            table.insert(orderIndexes, { orderIndex, class, leader, role })
+            table.insert(orderIndexes, {orderIndex, class, leader, role})
         end
 
         -- Sort the table by order index placing Tanks over Healers over DPS.
@@ -478,13 +476,10 @@ local SearchEntryUpdate = function(entry)
             local classColor = RAID_CLASS_COLORS[class]
             local r, g, b, _ = classColor:GetRGBA()
 
+            local iconFrame = dataDisplayEnum["Icon" .. iconNumber]
+            iconFrame:SetSize(18, 18)
 
-            local iconFrame = dataDisplayEnum["Icon"..iconNumber]
-            iconFrame:SetSize(18,18)
-
-            for _,v in ipairs(ns.constants.searchEntryFrames) do
-                if iconFrame[v] then iconFrame[v]:Hide() end
-            end
+            for _, v in ipairs(ns.constants.searchEntryFrames) do if iconFrame[v] then iconFrame[v]:Hide() end end
 
             -- dot - Displays a sphere colored to the class behind a smaller role icon in the same position as the default UI.
             -- icon - Displays an icon for the class in the same position as the default UI with a small role (if tank or healer) attached to the bottom of the icon.
@@ -492,12 +487,12 @@ local SearchEntryUpdate = function(entry)
                 -- Create and configure the frame needed.
 
                 if not iconFrame.classDot then
-                    local f = CreateFrame("Frame",dataDisplayEnum["ClassDot"..iconNumber],dataDisplayEnum)
+                    local f = CreateFrame("Frame", dataDisplayEnum["ClassDot" .. iconNumber], dataDisplayEnum)
                     f:SetFrameLevel(dataDisplayEnum:GetFrameLevel())
-                    f:SetPoint("CENTER",iconFrame)
+                    f:SetPoint("CENTER", iconFrame)
                     f:SetSize(18, 18)
 
-                    f.tex = f:CreateTexture(dataDisplayEnum["ClassDot"..iconNumber.."Tex"], "ARTWORK")
+                    f.tex = f:CreateTexture(dataDisplayEnum["ClassDot" .. iconNumber .. "Tex"], "ARTWORK")
                     f.tex:SetAllPoints(f)
 
                     f.tex:SetTexture([[Interface\AddOns\LFM+\Textures\Circle_Smooth_Border]])
@@ -507,7 +502,7 @@ local SearchEntryUpdate = function(entry)
 
                 if not iconFrame.roleIcon then
                     ---@type Texture
-                    local f = dataDisplayEnum:CreateTexture(dataDisplayEnum["RoleIcon"..iconNumber], "OVERLAY")
+                    local f = dataDisplayEnum:CreateTexture(dataDisplayEnum["RoleIcon" .. iconNumber], "OVERLAY")
                     f:SetSize(10, 10)
                     f:SetPoint("TOP", iconFrame, "CENTER", -1, -3)
                     f:Hide()
@@ -518,7 +513,7 @@ local SearchEntryUpdate = function(entry)
 
                 if db.classRoleDisplay == "dot" then
                     iconFrame:Hide()
-                    iconFrame.classDot.tex:SetVertexColor(r,g,b,1)
+                    iconFrame.classDot.tex:SetVertexColor(r, g, b, 1)
                     iconFrame.classDot:Show()
                     iconFrame.roleIcon:SetPoint("TOP", iconFrame, "CENTER", 0, 5)
                 elseif db.classRoleDisplay == "icon" then
@@ -530,17 +525,17 @@ local SearchEntryUpdate = function(entry)
             elseif db.classRoleDisplay == "bar" then
                 if not iconFrame.classBar then
                     ---@type Texture
-                    local f = dataDisplayEnum:CreateTexture(dataDisplayEnum["ClassBar"..iconNumber],"ARTWORK")
-                    f:SetSize(10,3)
-                    f:SetPoint("TOP",iconFrame,"BOTTOM")
+                    local f = dataDisplayEnum:CreateTexture(dataDisplayEnum["ClassBar" .. iconNumber], "ARTWORK")
+                    f:SetSize(10, 3)
+                    f:SetPoint("TOP", iconFrame, "BOTTOM")
                     f:Hide()
                     iconFrame.classBar = f
                 end
-                iconFrame.classBar:SetColorTexture(r,g,b,1)
+                iconFrame.classBar:SetColorTexture(r, g, b, 1)
                 iconFrame.classBar:Show()
-            --Ensure the display is set to default settings.
+                -- Ensure the display is set to default settings.
             elseif db.classRoleDisplay == "def" then
-                iconFrame:SetSize(18,18)
+                iconFrame:SetSize(18, 18)
             end
 
             -- Displays a crown attached to the top of the leaders role icon.
@@ -555,13 +550,11 @@ local SearchEntryUpdate = function(entry)
                 end
 
                 if orderIndexes[i][3] then
-                    dataDisplayEnum.leader:SetPoint("BOTTOM", iconFrame, "TOP", 0, 0);
+                    dataDisplayEnum.leader:SetPoint("BOTTOM", iconFrame, "TOP", 0, 0)
                     dataDisplayEnum.leader:Show()
                 end
             elseif db.showPartyLeader == false then
-                if dataDisplayEnum.leader then
-                    dataDisplayEnum.leader:Hide()
-                end
+                if dataDisplayEnum.leader then dataDisplayEnum.leader:Hide() end
             end
 
         end
@@ -569,12 +562,8 @@ local SearchEntryUpdate = function(entry)
         -- Hide any new member icons that may have been created but do not need to be shown for the current group.
         if numMembers < 5 then
             for i = numMembers + 1, 5 do
-                local icon = dataDisplayEnum["Icon"..((5 - i) + 1)]
-                if (icon) then
-                    for _,v in ipairs(ns.constants.searchEntryFrames) do
-                        if icon[v] then icon[v]:Hide() end
-                    end
-                end
+                local icon = dataDisplayEnum["Icon" .. ((5 - i) + 1)]
+                if (icon) then for _, v in ipairs(ns.constants.searchEntryFrames) do if icon[v] then icon[v]:Hide() end end end
             end
         end
     end
@@ -703,17 +692,17 @@ local UpdateApplicantMember = function(member, appID, memberIdx, status, pending
 
     if (not LFMPlus.mPlusListed) or (not LFGListFrame.ApplicationViewer:IsShown()) then return end
 
-    local activeEntryInfo = C_LFGList.GetActiveEntryInfo();
+    local activeEntryInfo = C_LFGList.GetActiveEntryInfo()
     local grayedOut = not pendingStatus and
                           (status == "failed" or status == "cancelled" or status == "declined" or status == "declined_full" or status == "declined_delisted" or status == "invitedeclined" or status ==
-                              "timedout" or status == "inviteaccepted" or status == "invitedeclined");
+                              "timedout" or status == "inviteaccepted" or status == "invitedeclined")
 
-    if (not activeEntryInfo) then return; end
+    if (not activeEntryInfo) then return end
 
     local textName = member.Name:GetText()
     local _, className, _, _, _, _, _, _, _, _, relationship, dungeonScore = C_LFGList.GetApplicantMemberInfo(appID, memberIdx)
 
-    local bestDungeonScoreForEntry = C_LFGList.GetApplicantDungeonScoreForListing(appID, memberIdx, activeEntryInfo.activityID);
+    local bestDungeonScoreForEntry = C_LFGList.GetApplicantDungeonScoreForListing(appID, memberIdx, activeEntryInfo.activityID)
     local scoreText = LFMPlus:formatMPlusRating(dungeonScore)
 
     local bestRunString = bestDungeonScoreForEntry and ("|" .. (bestDungeonScoreForEntry.finishedSuccess and "cFF00FF00" or "cFFFF0000") .. bestDungeonScoreForEntry.bestRunLevel .. "|r") or ""
@@ -984,7 +973,7 @@ local function InitializeUI()
                         LFMPlus:RemoveApplicantId(LFMPlusFrame.nextAppDecline)
                     elseif action == "exclude" then
                         LFMPlus:excludeFilteredId(LFMPlusFrame.nextAppDecline)
-                        LFGListFrame.activePanel.RefreshButton:Click();
+                        LFGListFrame.activePanel.RefreshButton:Click()
                     end
                 end
             end
@@ -1012,13 +1001,13 @@ local function InitializeUI()
         f.scoreMinFrame = CreateFrame("Slider", nil, f, "OptionsSliderTemplate")
 
         function f.scoreMinFrame:SetDisplayValue(value)
-            self.noclick = true;
-            self:SetValue(value);
-            self.Value:SetText(LFMPlus:formatMPlusRating(value));
+            self.noclick = true
+            self:SetValue(value)
+            self.Value:SetText(LFMPlus:formatMPlusRating(value))
             db.ratingFilterMin = value
             db.ratingFilter = value > 0
             LFMPlus:RefreshResults()
-            self.noclick = false;
+            self.noclick = false
         end
 
         function f.scoreMinFrame:SetEnable(value)
@@ -1044,7 +1033,7 @@ local function InitializeUI()
         f.scoreMinFrame.Value:ClearAllPoints()
         f.scoreMinFrame.Value:SetPoint("TOP", f.scoreMinFrame, "BOTTOM", 0, 3)
 
-        f.scoreMinFrame:SetMinMaxValues(ns.constants.ratingMin, ns.constants.ratingMax);
+        f.scoreMinFrame:SetMinMaxValues(ns.constants.ratingMin, ns.constants.ratingMax)
         f.scoreMinFrame:SetDisplayValue(db.ratingFilterMin)
         f.scoreMinFrame.Low:SetText(LFMPlus:formatMPlusRating(ns.constants.ratingMin))
         f.scoreMinFrame.High:SetText(LFMPlus:formatMPlusRating(ns.constants.ratingMax))
@@ -1161,7 +1150,7 @@ local function InitializeUI()
             end
         end
 
-        f.button_cover:RegisterForClicks("LeftButtonDown", "RightButtonDown");
+        f.button_cover:RegisterForClicks("LeftButtonDown", "RightButtonDown")
 
         f.button_cover:HookScript("OnClick", btnClick)
 
@@ -1236,7 +1225,7 @@ local function InitializeUI()
             end
         end
 
-        f.button_cover:RegisterForClicks("LeftButtonDown", "RightButtonDown");
+        f.button_cover:RegisterForClicks("LeftButtonDown", "RightButtonDown")
 
         f.button_cover:HookScript("OnClick", btnClick)
 
@@ -1268,8 +1257,8 @@ local function InitializeUI()
         f:SetFrameLevel(1)
         f:SetFrameStrata("HIGH")
         f:SetPoint("CENTER", LFMPlusFrame.activeRoleFrame, "CENTER", 0, 0)
-        f:RegisterForClicks("LeftButtonDown", "RightButtonDown");
-        f:SetSize(32, 32);
+        f:RegisterForClicks("LeftButtonDown", "RightButtonDown")
+        f:SetSize(32, 32)
         f:SetText("0")
         f:SetNormalFontObject("GameFontNormalSmall")
         f:SetScript("OnClick", function(s, b, d)
@@ -1350,20 +1339,13 @@ local options = {
                     descStyle = "inline",
                     arg = "classRoleDisplay",
                     style = "radio",
-                    values = {
-                        ["def"] = "Default Icons",
-                        ["dot"] = "Role Icon Over Class Color",
-                        ["icon"] = "Class Icon with Role Icon",
-                        ["bar"] = "Class Colored Bar"
-                    },
-                    sorting = {
-                        "def","bar","dot","icon"
-                    },
+                    values = {["def"] = "Default Icons", ["dot"] = "Role Icon Over Class Color", ["icon"] = "Class Icon with Role Icon", ["bar"] = "Class Colored Bar"},
+                    sorting = {"def", "bar", "dot", "icon"},
                     set = function(info, v)
                         db[info.arg] = v
                         LFMPlus:FilterChanged()
                     end,
-                    order = 30,
+                    order = 30
                 },
                 showPartyLeader = {
                     type = "toggle",
@@ -1376,7 +1358,7 @@ local options = {
                         db[info.arg] = v
                         LFMPlus:FilterChanged()
                     end,
-                    order = 30,
+                    order = 30
                 },
                 showRealmName = {
                     type = "toggle",
@@ -1654,14 +1636,14 @@ function LFMPlus:ToggleFrames(frame, action)
         LFMPlusFrame:Show()
         LFMPlusFrame.activeRoleFrame:UpdateRoleIcon()
 
-        for k, _ in pairs(LFMPlusFrame.frames[frame]) do LFMPlusFrame[k]:Show(); end
+        for k, _ in pairs(LFMPlusFrame.frames[frame]) do LFMPlusFrame[k]:Show() end
 
         self:FilterChanged()
     end
 
     if action == "hide" then
         LFMPlusFrame:Hide()
-        for k, _ in pairs(LFMPlusFrame.frames.all) do LFMPlusFrame[k]:Hide(); end
+        for k, _ in pairs(LFMPlusFrame.frames.all) do LFMPlusFrame[k]:Hide() end
     end
 end
 
@@ -1698,11 +1680,11 @@ function LFMPlus:RunHooks()
         end)
 
         LFGListFrame.CategorySelection.StartGroupButton:HookScript("OnClick", function(s)
-            local panel = s:GetParent();
-            if (not panel.selectedCategory) then return; end
+            local panel = s:GetParent()
+            if (not panel.selectedCategory) then return end
             if panel.selectedCategory == 2 then
                 local _, mapID = C_ChallengeMode.GetMapUIInfo(C_MythicPlus.GetOwnedKeystoneChallengeMapID())
-                if mapID then LFGListEntryCreation_Select(LFGListFrame.EntryCreation, nil, nil, nil, ns.constants.mapInfo[mapID].activityId); end
+                if mapID then LFGListEntryCreation_Select(LFGListFrame.EntryCreation, nil, nil, nil, ns.constants.mapInfo[mapID].activityId) end
             end
         end)
 
