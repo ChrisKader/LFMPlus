@@ -1,0 +1,5 @@
+{
+    "Lua.runtime.version": "Lua 5.1",
+    "Lua.completion.showParams": false,
+    "Lua.completion.displayContext": 0
+}

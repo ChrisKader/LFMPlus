@@ -1,10 +1,11 @@
-#LFM+
+# LFM+
 
 LFM+ (Looking for Mythic Plus) enhances the default LFG UI for Mythic+ activies to make looking for, or creating, a group for keys in World of Warcraft.  
 
 ![](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/1.png?raw=true "Addon Frame")  
 
-####Addon Layout  
+**To open the options for LFM+ type "/lfm" into chat.**  
+## Addon Layout
 * **Active Role Filter**  
     * When enabled, only listings with a spot open for your current role are shown.  
     * Updated when you change specs.  
@@ -25,7 +26,7 @@ LFM+ (Looking for Mythic Plus) enhances the default LFG UI for Mythic+ activies 
     * **Shift-Right Click** to move to the previous applicant  
     ![](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/5.png?raw=true "Decline Queue")  
 
-####Addon Features
+## Addon Features
 All LFM+ functions apply ONLY to M+ dungeon listings.  
 * **"Find a Group" Frame**
     * Filter listings with no open spot for your current role.  
@@ -34,8 +35,18 @@ All LFM+ functions apply ONLY to M+ dungeon listings.
     * Using the addons built in dungeon selection dropdown, you can chose any combination of dungeons you would like to see.
         * This allows you to use the actual search box for other things, such as key level.  
         ![](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/2.png?raw=true "Dungeon Dropdown")  
+    * 3 Role Icon displays in addition to the default display.  
+        * Classed Colored Bar  
+            * Adds a bar colored with the class of the player in that role below the default icon.  
+            ![ss7](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/7.png?raw=true "Class Colored Bar")  
+        * Role Icon over Class Color
+            * Changes the default role icon to a circle texture colored to the class in that role with a role icon added.  
+            ![ss8](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/8.png?raw=true "Role Icon over Class Color")  
+        * Class Icon with Role Icon
+            * Changes the default role icon to the class icon in that role with a role icon added.  
+            ![ss9](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/8.png?raw=true "Class Icon with Role Icon")  
     * Listings will always show the role/class icons, even if you have applied to it.  
-    ![ss3](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/3.png?raw=true "Listing Enhancements")  
+    ![ss3](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/10.png?raw=true "Listing Enhancements")  
 * **"Applicant" Frame**
     * Filter applicants by class and/or Mythic Plus Rating.
     * Filtered applicants are added to a "Decline Queue" that can be viewed and processed by hovering over the applicable button in the LFM+ frame.  
