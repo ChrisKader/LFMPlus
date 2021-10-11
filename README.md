@@ -75,7 +75,7 @@ All LFM+ functions apply ONLY to M+ dungeon listings.
     * Shift-Click on activity categories to start a group.  
     * Remove the shading overlay from the applicant viewer when you are not the leader.  
 
-**WIP Enhancement/Features**
+## WIP Enhancement/Features
 * Better localization support.
 * More applicant filters
     * Only allow needed roles.
@@ -88,11 +88,10 @@ All LFM+ functions apply ONLY to M+ dungeon listings.
         * Lust/Brez/Immunity/ect
 * Specify players/realms to be flagged or filtered out.
     * Via right click on unit frames, search listings or applications.
-* Better/more reliable decline queue processing.
 * Ability to track players you have done keys with and record notes that can be referenced when you see that player again.
 * Ability to view listings while also being listed.
 * Ability to add a realm and/or player to the addons internal flagging list.
 * User specified short names for dungeons.
 * Scaling
 
-**This addon does NOT use rating data from the RaiderIO addon and does NOT require the RaiderIO addon to be installed. Support for RaiderIO scoring/colors is possible option if the demand is high enough.**
+**This addon does NOT use rating data from the RaiderIO addon and does NOT require the RaiderIO addon to be installed. Support for RaiderIO scoring/colors is possible if users would like it added.**
