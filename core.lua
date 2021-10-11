@@ -15,7 +15,6 @@ local defaults = {
         -- Control Panel Defaults
         enabled = true,
         showLeaderScore = true,
-        showClassColors = true,
         showRealmName = true,
         shortenActivityName = true,
         alwaysShowFriends = true,
@@ -1342,15 +1341,6 @@ local options = {
                     name = "         " .. LFMPlus:formatMPlusRating(2200) .. " " .. NORMAL_FONT_COLOR:WrapTextInColorCode("19 PF LUST"),
                     fontSize = "medium",
                     order = 11
-                },
-                showClassColors = {
-                    type = "toggle",
-                    width = "full",
-                    name = L["Show Class Colors"],
-                    desc = L["Toggle the visbility of bars under the role icons of groups listed in LFG."],
-                    descStyle = "inline",
-                    arg = "showClassColors",
-                    order = 20
                 },
                 classRoleDisplay = {
                     type = "select",
