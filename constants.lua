@@ -1,4 +1,6 @@
-local ns = select(2, ...) ---@type ns @The addon namespace.
+---@type ns
+local _, ns = ...
+
 
 ns.constants = {
   friendlyName = "LFMP",
@@ -30,17 +32,7 @@ ns.constants = {
     [380] = {shortName = "SD", activityId = 705},
     [381] = {shortName = "SOA", activityId = 709},
     [376] = {shortName = "NW", activityId = 713},
-    [382] = {shortName = "TOP", activityId = 717}
-  },
-  actvityInfo = {
-    [691] = {shortName = "PF", mapId = 379},
-    [695] = {shortName = "DOS", mapId = 377},
-    [699] = {shortName = "HOA", mapId = 378},
-    [703] = {shortName = "MOTS", mapId = 375},
-    [705] = {shortName = "SD", mapId = 380},
-    [709] = {shortName = "SOA", mapId = 381},
-    [713] = {shortName = "NW", mapId = 376},
-    [717] = {shortName = "TOP", mapId = 382}
+    [382] = {shortName = "TOP", activityId = 717},
   },
   trackedEvents = {
     ["LFG_LIST_AVAILABILITY_UPDATE"] = false,
@@ -60,4 +52,15 @@ ns.constants = {
     ["GROUP_ROSTER_UPDATE"] = true
   },
   searchEntryFrames = {"classDot", "roleIcon", "classBar"}
+}
+
+ns.constants.actvityInfo = {
+  [691] = ns.constants.mapInfo[379],
+  [695] = ns.constants.mapInfo[377],
+  [699] = ns.constants.mapInfo[378],
+  [703] = ns.constants.mapInfo[375],
+  [705] = ns.constants.mapInfo[380],
+  [709] = ns.constants.mapInfo[381],
+  [713] = ns.constants.mapInfo[376],
+  [717] = ns.constants.mapInfo[382],
 }

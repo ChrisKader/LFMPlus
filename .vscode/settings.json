@@ -9,6 +9,13 @@
       ".luacheckrc"
     ],
     "Lua.workspace.library": [
-
-    ]
+      "c:/dev/vscode-wow-api/EmmyLua/API",
+      "c:/dev/vscode-wow-api/EmmyLua/FrameXML"
+    ],
+    "Lua.diagnostics.globals": [
+      "DUNGEONS",
+      "CLASS"
+    ],
+    "lua.format.lineWidth": 180,
+    "lua.format.linebreakMultipleAssignments": true
 }
