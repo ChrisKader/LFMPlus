@@ -1,8 +1,9 @@
 ## Interface: 90100
 ## Title: LFM+
 ## Author: Onlyne
-## Version: 1.0.0
+## Version: 1.2.1
 ## Notes: Provides enhancements to the Blizzard LFG UI centered around looking for and building groups for Mythic Keystones.
+## Notes-ruRU: Улучшенный пользовательский интерфейс Blizzard LFG, ориентированный на поиск и создание групп для эпохальных ключей.
 ## X-Category: Interface Enhancements
 ## X-Curse-Project-ID: 532787
 ## X-Wago-ID: JZKb4yN1
