@@ -5,3 +5,9 @@
   - vscode-lua Extension https://marketplace.visualstudio.com/items?itemName=trixnz.vscode-lua
   - WoW API https://marketplace.visualstudio.com/items?itemName=ketho.wow-api
   - WoW TOC https://marketplace.visualstudio.com/items?itemName=stanzilla.vscode-wow-toc
+
+
+-- New Release
+  - Ensure CHANGELOG.MD is updated.
+  - `git tag vX.X.X`
+  - `git push origin vX.X.X`

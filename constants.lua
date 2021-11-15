@@ -3,6 +3,11 @@ local _, ns = ...
 
 
 ns.constants = {
+  playStyleString = {
+    [1] = "",
+    [2] = "Compl",
+    [3] = "Time",
+  },
   friendlyName = "LFMP",
   ratingMin = 0,
   ratingMax = 3500,
@@ -38,8 +43,8 @@ ns.constants = {
     ["LFG_LIST_AVAILABILITY_UPDATE"] = false,
     ["LFG_LIST_ACTIVE_ENTRY_UPDATE"] = true,
     ["LFG_LIST_ENTRY_CREATION_FAILED"] = false,
-    ["LFG_LIST_SEARCH_RESULTS_RECEIVED"] = false,
-    ["LFG_LIST_SEARCH_RESULT_UPDATED"] = false,
+    ["LFG_LIST_SEARCH_RESULTS_RECEIVED"] = true,
+    ["LFG_LIST_SEARCH_RESULT_UPDATED"] = true,
     ["LFG_LIST_SEARCH_FAILED"] = false,
     ["LFG_LIST_APPLICANT_LIST_UPDATED"] = false,
     ["LFG_LIST_APPLICANT_UPDATED"] = true,

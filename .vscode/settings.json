@@ -14,8 +14,8 @@
     ],
     "Lua.diagnostics.globals": [
       "DUNGEONS",
-      "CLASS"
+      "CLASS",
+      "FLEX_RAID_LOCKOUT_LABEL"
     ],
-    "lua.format.lineWidth": 180,
-    "lua.format.linebreakMultipleAssignments": true
+    "lua.format.lineWidth": 500
 }
