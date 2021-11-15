@@ -1,6 +1,7 @@
 std = "lua51"
 
 max_line_length = 500
+max_code_line_length = 500
 exclude_files = {
     "/libs/",
     ".luacheckrc"

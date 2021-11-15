@@ -70,6 +70,45 @@ LFMPlus.isLeader = false
 LFMPlus.eligibleApplicantList = {}
 LFMPlus.newEligibleApplicant = false
 
+function LFMPlus:ClearValues()
+  LFMPlus.mPlusSearch = false
+  LFMPlus.mPlusListed = false
+  LFMPlus.newEligibleApplicant = false
+  LFMPlus.eligibleApplicantList = {}
+
+  LFMPlusFrame.exemptIDs = {}
+  LFMPlusFrame.declineButtonInfo = {}
+  LFMPlusFrame.filteredIDs = {}
+  LFMPlusFrame.results = {}
+  LFMPlusFrame.totalResults = 0
+
+  LFMPlusFrame.nextAppDecline = nil
+  -- Dropdown Mode
+  LFMPlusFrame.DD.m = 3
+end
+
+function LFMPlus:ToggleFrames(frame, action)
+  if db.enabled and action == "show" then
+    LFMPlusFrame:Show()
+    LFMPlusFrame.activeRoleFrame:UpdateRoleIcon()
+
+    for k, _ in pairs(LFMPlusFrame.frames[frame]) do
+      LFMPlusFrame[k]:Show()
+    end
+    LFMPlusFrame:Layout()
+    LibDD:UIDropDownMenu_Initialize(LFMPlusFrame.DD, LFMPlusFrame.DD.LFMPlusDD_Initialize)
+    self:FilterChanged()
+  end
+
+  if action == "hide" then
+    LFMPlusFrame:Hide()
+    LFMPlus:ClearValues()
+    for k, _ in pairs(LFMPlusFrame.frames.all) do
+      LFMPlusFrame[k]:Hide()
+    end
+  end
+end
+
 function LFMPlus:formatMPlusRating(score)
   if not score or type(score) ~= "number" then
     score = 0
@@ -274,7 +313,7 @@ local hideTooltip = function()
   end
 end
 
-local function getIndex(values, val)
+local getIndex = function (values, val)
   local index = {}
   for k, v in pairs(values) do
     index[v] = k
@@ -405,7 +444,7 @@ local L_LFGListUtil_SortSearchResults = function(results)
   table.sort(results, SortSearchResultsCB)
 end
 
-local function L_LFGListUtil_SetSearchEntryTooltip(tooltip, resultID, autoAcceptOption)
+local L_LFGListUtil_SetSearchEntryTooltip = function (tooltip, resultID, autoAcceptOption)
   local searchResultInfo = C_LFGList.GetSearchResultInfo(resultID)
   local activityInfo = C_LFGList.GetActivityInfoTable(searchResultInfo.activityID, nil, searchResultInfo.isWarMode)
 
@@ -529,13 +568,13 @@ local function L_LFGListUtil_SetSearchEntryTooltip(tooltip, resultID, autoAccept
   tooltip:Show()
 end
 
-local function L_LFGListSearchEntry_OnEnter(self)
+local L_LFGListSearchEntry_OnEnter = function (self)
   GameTooltip:SetOwner(self, "ANCHOR_RIGHT", 25, 0)
   local resultID = self.resultID
   L_LFGListUtil_SetSearchEntryTooltip(GameTooltip, resultID)
 end
 
-local SearchEntryUpdate = function(self)
+local L_LFGListSearchEntry_Update = function(self)
   if (not LFMPlus.mPlusSearch) or (not LFGListFrame.SearchPanel:IsShown()) then
     return
   end
@@ -879,7 +918,7 @@ local SearchEntryUpdate = function(self)
   --LFGListFrame.SearchPanel.ScrollFrame.buttons[self.idx]:Hide()
 end
 
-local function L_LFGListSearchPanel_UpdateResults(self)
+local L_LFGListSearchPanel_UpdateResults = function (self)
   LFMPlusFrame.results = self.results
   LFMPlusFrame.applications = self.applications
   L_LFGListUtil_SortSearchResults(LFMPlusFrame.results)
@@ -901,7 +940,7 @@ local function L_LFGListSearchPanel_UpdateResults(self)
 
       if (result) then
         button.resultID = result
-        SearchEntryUpdate(button)
+        L_LFGListSearchEntry_Update(button)
         button:Show()
       else
         button.resultID = nil
@@ -914,7 +953,7 @@ local function L_LFGListSearchPanel_UpdateResults(self)
   end
 end
 
-local function L_LFGListSearchEntry_OnClick(self, button)
+local L_LFGListSearchEntry_OnClick = function (self, button)
   LFMPlusFrame.selectedResult = self.resultID
   LFGListSearchEntry_OnClick(LFGListFrame.SearchPanel.ScrollFrame.buttons[self.idx], button)
 end
@@ -1069,7 +1108,64 @@ local UpdateApplicantMember = function(member, appID, memberIdx, status, pending
   end
 end
 
-local function InitializeUI()
+function LFMPlus:EventHandler(event, ...)
+  if event == "LFG_LIST_SEARCH_RESULTS_RECEIVED" then
+    L_LFGListSearchPanel_UpdateResults(LFGListFrame.SearchPanel)
+  end
+  if event == "PLAYER_SPECIALIZATION_CHANGED" then
+    local unitId = ...
+    if unitId == "player" then
+      LFMPlusFrame.activeRoleFrame:UpdateRoleIcon()
+    end
+  end
+
+  if event == "LFG_LIST_APPLICANT_UPDATED" then
+    local applicantID = ...
+    if applicantID then
+      local applicantInfo = C_LFGList.GetApplicantInfo(applicantID)
+      if applicantInfo and (applicantInfo.applicationStatus ~= "applied") and (applicantInfo.applicationStatus ~= "invited") and (applicantInfo.applicationStatus ~= "inviteaccepted") then
+        LFMPlus:RemoveApplicantId(applicantID)
+      end
+    end
+  end
+
+  if event == "LFG_LIST_ACTIVE_ENTRY_UPDATE" or event == "GROUP_ROSTER_UPDATE" then
+    if C_LFGList.HasActiveEntryInfo() then
+      local activeEntryInfo = C_LFGList.GetActiveEntryInfo()
+      if activeEntryInfo then
+        local _, _, _, _, _, _, _, _, _, _, _, _, isMythicPlusActivity = C_LFGList.GetActivityInfo(activeEntryInfo.activityID)
+        if isMythicPlusActivity then
+          LFMPlus.mPlusListed = true
+          LFMPlus.mPlusSearch = false
+          LFMPlus:ToggleFrames("app", "show")
+        end
+      else
+        LFMPlus:ClearValues()
+        LFMPlus:ToggleFrames("app", "hide")
+      end
+    else
+      LFMPlus:ClearValues()
+      LFMPlus:ToggleFrames("app", "hide")
+    end
+    LFMPlus.isLeader = UnitIsGroupLeader("player", LE_PARTY_CATEGORY_HOME)
+  end
+  -- QueueStatusMinimapButton_SetGlowLock(self, lock, enabled, numPingSounds)
+
+  if event == "PARTY_LEADER_CHANGED" then
+    LFMPlus.isLeader = UnitIsGroupLeader("player", LE_PARTY_CATEGORY_HOME)
+  end
+  if event == "LFG_LIST_SEARCH_RESULT_UPDATED" then
+    local id = ...
+    if (LFGListFrame.SearchPanel.selectedResult == id) then
+      LFGListSearchPanel_ValidateSelected(LFGListFrame.SearchPanel)
+      if (LFGListFrame.SearchPanel.selectedResult ~= id) then
+        L_LFGListSearchPanel_UpdateResults(LFGListFrame.SearchPanel)
+      end
+    end
+  end
+end
+
+local InitializeUI = function ()
   do
     local f = LFMPlusFrame
     f:SetPoint("BOTTOMRIGHT", GroupFinderFrame, "TOPRIGHT")
@@ -1482,6 +1578,7 @@ local function InitializeUI()
     end
 
     LibDD:UIDropDownMenu_Initialize(f, f.LFMPlusDD_Initialize)
+    LibDD:UIDropDownMenu_SetSelectedValue(f, 0)
 
     f:Hide()
 
@@ -1536,6 +1633,20 @@ local function InitializeUI()
   end
 
   LFMPlusFrame:Layout()
+
+  -- Register Events
+  for k, v in pairs(ns.constants.trackedEvents) do
+    if v then
+      LFMPlus:RegisterEvent(k, LFMPlus.EventHandler)
+    end
+  end
+  for k, v in pairs(LFMPlusFrame.frames.search) do
+    LFMPlusFrame.frames.all[k] = v
+  end
+
+  for k, v in pairs(LFMPlusFrame.frames.app) do
+    LFMPlusFrame.frames.all[k] = v
+  end
 end
 
 local options = {
@@ -1927,128 +2038,17 @@ function LFMPlus:OnInitialize()
 
   LibStub("AceConfigDialog-3.0"):AddToBlizOptions(addonName, addonName)
   InitializeUI()
-  local function EventHandler(event, ...)
-    if event == "LFG_LIST_SEARCH_RESULTS_RECEIVED" then
-    end
-    if event == "PLAYER_SPECIALIZATION_CHANGED" then
-      local unitId = ...
-      if unitId == "player" then
-        LFMPlusFrame.activeRoleFrame:UpdateRoleIcon()
-      end
-    end
-
-    if event == "LFG_LIST_APPLICANT_UPDATED" then
-      local applicantID = ...
-      if applicantID then
-        local applicantInfo = C_LFGList.GetApplicantInfo(applicantID)
-        if applicantInfo and (applicantInfo.applicationStatus ~= "applied") and (applicantInfo.applicationStatus ~= "invited") and (applicantInfo.applicationStatus ~= "inviteaccepted") then
-          LFMPlus:RemoveApplicantId(applicantID)
-        end
-      end
-    end
-
-    if event == "LFG_LIST_ACTIVE_ENTRY_UPDATE" or event == "GROUP_ROSTER_UPDATE" then
-      if C_LFGList.HasActiveEntryInfo() then
-        local activeEntryInfo = C_LFGList.GetActiveEntryInfo()
-        if activeEntryInfo then
-          local _, _, _, _, _, _, _, _, _, _, _, _, isMythicPlusActivity = C_LFGList.GetActivityInfo(activeEntryInfo.activityID)
-          if isMythicPlusActivity then
-            LFMPlus.mPlusListed = true
-            LFMPlus.mPlusSearch = false
-            LFMPlus:ToggleFrames("app", "show")
-          end
-        else
-          LFMPlus:ClearValues()
-          LFMPlus:ToggleFrames("app", "hide")
-        end
-      else
-        LFMPlus:ClearValues()
-        LFMPlus:ToggleFrames("app", "hide")
-      end
-      LFMPlus.isLeader = UnitIsGroupLeader("player", LE_PARTY_CATEGORY_HOME)
-    end
-    -- QueueStatusMinimapButton_SetGlowLock(self, lock, enabled, numPingSounds)
-
-    if event == "PARTY_LEADER_CHANGED" then
-      LFMPlus.isLeader = UnitIsGroupLeader("player", LE_PARTY_CATEGORY_HOME)
-    end
-    if event == "LFG_LIST_SEARCH_RESULT_UPDATED" then
-      local id = ...
-      if (LFGListFrame.SearchPanel.selectedResult == id) then
-        LFGListSearchPanel_ValidateSelected(LFGListFrame.SearchPanel)
-        if (LFGListFrame.SearchPanel.selectedResult ~= id) then
-          L_LFGListSearchPanel_UpdateResults(LFGListFrame.SearchPanel)
-        end
-      end
-    end
-  end
-
-  -- Register Events
-  for k, v in pairs(ns.constants.trackedEvents) do
-    if v then
-      LFMPlus:RegisterEvent(k, EventHandler)
-    end
-  end
-  for k, v in pairs(LFMPlusFrame.frames.search) do
-    LFMPlusFrame.frames.all[k] = v
-  end
-
-  for k, v in pairs(LFMPlusFrame.frames.app) do
-    LFMPlusFrame.frames.all[k] = v
-  end
 
   if db.enabled then
     LFMPlus:Enable()
   end
 end
 
-function LFMPlus:ClearValues()
-  LFMPlus.mPlusSearch = false
-  LFMPlus.mPlusListed = false
-  LFMPlus.newEligibleApplicant = false
-  LFMPlus.eligibleApplicantList = {}
-
-  LFMPlusFrame.exemptIDs = {}
-  LFMPlusFrame.declineButtonInfo = {}
-  LFMPlusFrame.filteredIDs = {}
-  LFMPlusFrame.results = {}
-  LFMPlusFrame.totalResults = 0
-
-  LFMPlusFrame.nextAppDecline = nil
-  -- Dropdown Mode
-  LFMPlusFrame.DD.m = 3
-end
-
-function LFMPlus:ToggleFrames(frame, action)
-  if db.enabled and action == "show" then
-    LFMPlusFrame:Show()
-    LFMPlusFrame.activeRoleFrame:UpdateRoleIcon()
-
-    for k, _ in pairs(LFMPlusFrame.frames[frame]) do
-      LFMPlusFrame[k]:Show()
-    end
-    LFMPlusFrame:Layout()
-    LibDD:UIDropDownMenu_Initialize(LFMPlusFrame.DD, LFMPlusFrame.DD.LFMPlusDD_Initialize)
-    self:FilterChanged()
-  end
-
-  if action == "hide" then
-    LFMPlusFrame:Hide()
-    LFMPlus:ClearValues()
-    for k, _ in pairs(LFMPlusFrame.frames.all) do
-      LFMPlusFrame[k]:Hide()
-    end
-  end
-end
-
 function LFMPlus:RunHooks()
   if not ns.InitHooksRan then
-    --hooksecurefunc("LFGListUtil_SortSearchResults", SortSearchResults)
-    --hooksecurefunc("LFGListSearchEntry_Update", SearchEntryUpdate)
-    --hooksecurefunc("LFGListSearchPanel_UpdateResultList", L_LFGListSearchPanel_UpdateResultList)
     hooksecurefunc("LFGListSearchPanel_UpdateResults", L_LFGListSearchPanel_UpdateResults)
-    --hooksecurefunc("LFGListUtil_SortApplicants", SortApplicants)
-    --hooksecurefunc("LFGListApplicationViewer_UpdateApplicantMember", UpdateApplicantMember)
+    hooksecurefunc("LFGListUtil_SortApplicants", SortApplicants)
+    hooksecurefunc("LFGListApplicationViewer_UpdateApplicantMember", UpdateApplicantMember)
     -- hooksecurefunc("QueueStatusMinimapButton_SetGlowLock",CheckForPings)
     ns.InitHooksRan = true
   end
@@ -2082,11 +2082,11 @@ function LFMPlus:Enable()
               if (event == "LFG_LIST_SEARCH_RESULT_UPDATED") then
                 local id = ...
                 if (id == s.resultID) then
-                  SearchEntryUpdate(s)
+                  L_LFGListSearchEntry_Update(s)
                 end
               elseif (event == "LFG_ROLE_CHECK_UPDATE") then
                 if (s.resultID) then
-                  SearchEntryUpdate(s)
+                  L_LFGListSearchEntry_Update(s)
                 end
               end
             end
@@ -2105,45 +2105,6 @@ function LFMPlus:Enable()
           )
         end
 
-        --[[         LFMPlus:HookScript(
-          LFGListFrame.SearchPanel,
-          "OnShow",
-          function(s)
-            if LFGListFrame.CategorySelection.selectedCategory == 2 then
-              LFMPlusFrame.DD.m = 1
-              LFMPlus:ToggleFrames("search", "show")
-            end
-          end
-        )
-
-        LFMPlus:HookScript(
-          LFGListFrame.SearchPanel,
-          "OnHide",
-          function(s)
-            if LFGListFrame.CategorySelection.selectedCategory == 2 then
-              LFMPlusFrame.DD.m = 3
-              LFMPlus:ToggleFrames("search", "hide")
-            end
-          end
-        ) ]]
-        --[[         LFMPlus:HookScript(
-          LFGListFrame.ApplicationViewer,
-          "OnShow",
-          function(s)
-            LFMPlusFrame.DD.m = 2
-            if LFMPlus.mPlusListed then
-              LFMPlus:ToggleFrames("app", "show")
-            end
-          end
-        )
-
-        LFMPlus:HookScript(
-          LFGListFrame.ApplicationViewer,
-          "OnHide",
-          function()
-            LFMPlus:ToggleFrames("app", "hide")
-          end
-        ) ]]
         LFMPlus:HookScript(
           LFGListFrame.CategorySelection.FindGroupButton,
           "OnClick",
