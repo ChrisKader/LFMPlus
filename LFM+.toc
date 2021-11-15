@@ -1,4 +1,4 @@
-## Interface: 90100
+## Interface: 90105
 ## Title: LFM+
 ## Author: Onlyne
 ## Version: 1.3.1
