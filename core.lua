@@ -1246,7 +1246,7 @@ local InitializeUI = function ()
         local applicantInfo = C_LFGList.GetApplicantInfo(LFMPlusFrame.nextAppDecline)
         if applicantInfo then
           local inactiveApplication = (applicantInfo.applicationStatus ~= "applied" and applicantInfo.applicationStatus ~= "invited")
-          if action == "decline" and LFMPlus.isLeader then
+          if action == "decline" and UnitIsGroupLeader("player", LE_PARTY_CATEGORY_HOME) then
             if inactiveApplication then
               C_LFGList.RemoveApplicant(LFMPlusFrame.nextAppDecline)
             else
