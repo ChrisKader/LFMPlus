@@ -6,7 +6,7 @@
   - WoW API https://marketplace.visualstudio.com/items?itemName=ketho.wow-api
   - WoW TOC https://marketplace.visualstudio.com/items?itemName=stanzilla.vscode-wow-toc
 
-
+Release.sh: sudo apt-get install subversion zip jq
 -- New Release
   - Ensure CHANGELOG.MD is updated.
   - `git tag vX.X.X`
