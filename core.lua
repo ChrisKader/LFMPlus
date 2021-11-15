@@ -349,6 +349,11 @@ local L_LFGListUtil_SortSearchResults = function(results)
   local FilterSearchResults = function(searchResultID)
     local searchResultInfo = C_LFGList.GetSearchResultInfo(searchResultID)
     local activityInfo = C_LFGList.GetActivityInfoTable(searchResultInfo.activityID, nil, searchResultInfo.isWarMode)
+    local _, appStatus, pendingStatus, appDuration = C_LFGList.GetApplicationInfo(searchResultID)
+    local isApplication = (appStatus ~= "none" or pendingStatus)
+    if (isApplication) then
+      return false
+    end
     resultStats[searchResultID] = searchResultInfo
     -- requiredPvPRating number
     -- requiredDungeonScore number
@@ -356,7 +361,7 @@ local L_LFGListUtil_SortSearchResults = function(results)
     if searchResultInfo then
       -- Never filter listings with friends or guildies.
       local filterFriends = db.alwaysShowFriends and ((searchResultInfo.numBNetFriends or 0) + (searchResultInfo.numCharFriends or 0) + (searchResultInfo.numGuildMates or 0)) > 0 or false
-      if (not filterFriends) then
+      if (not filterFriends)then
         local leaderName, realmName = LFMPlus:GetNameRealm(searchResultInfo.leaderName)
         -- local realmName = leaderName:find("-") ~= nil and string.sub(leaderName, leaderName:find("-") + 1, string.len(leaderName)) or GetRealmName()
         local filterRole = db.activeRoleFilter and not RemainingSlotsForLocalPlayerRole(searchResultID) or false
@@ -1581,7 +1586,8 @@ local InitializeUI = function ()
     LibDD:UIDropDownMenu_SetSelectedValue(f, 0)
 
     f:Hide()
-
+    db.dungeonFilter = db.dungeonFilter or false
+    db.classFilter = db.classFilter or false
     LFMPlusFrame.DD = f
     LFMPlusFrame.frames.search["DD"] = true
     LFMPlusFrame.frames.app["DD"] = true
