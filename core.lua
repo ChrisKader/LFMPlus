@@ -1299,13 +1299,13 @@ local InitializeUI = function ()
     f.Header:SetWidth(80)
     f.Border = CreateFrame("Frame", nil, LFMPlusFrame, "DialogBorderTemplate")
 
-    function f:FilterChanged()
+    function LFMPlusFrame:FilterChanged()
       if ns.Init and LFGListFrame.activePanel.RefreshButton and LFGListFrame.activePanel.RefreshButton:IsShown() and LFGListFrame.activePanel.searching == false then
         LFGListFrame.activePanel.RefreshButton:Click()
       end
     end
 
-    function f:UpdateDeclineButtonInfo()
+    function LFMPlusFrame:UpdateDeclineButtonInfo()
       self.declineButtonInfo = {}
       if (not LFMPlus.mPlusListed) then
         self.declineButton:SetText(0)
@@ -1338,7 +1338,7 @@ local InitializeUI = function ()
       end
     end
 
-    function f:ProcessFilteredApp(action)
+    function LFMPlusFrame:ProcessFilteredApp(action)
       -- If the applicant status is anything other than invited or applied it means thier listing is "inactive".
       -- This would be indicated by the default UI as faded entry in the scroll from and happens when an application
       -- expires due to time, the applicant cancels their own application or the applicant gets invited to another group.
@@ -1364,7 +1364,7 @@ local InitializeUI = function ()
       end
     end
 
-    function f:ShiftDeclineSelection(direction)
+    function LFMPlusFrame:ShiftDeclineSelection(direction)
       local newVal = nil
 
       for i = 1, #self.filteredIDs do
@@ -1808,7 +1808,7 @@ local options = {
       end,
       set = function(info, v)
         db[info.arg] = v
-        LFMPlus:FilterChanged()
+        LFMPlusFrame:FilterChanged()
       end,
       disabled = function()
         return not db.enabled
@@ -1847,7 +1847,7 @@ local options = {
           sorting = {"def", "bar", "dot", "icon"},
           set = function(info, v)
             db[info.arg] = v
-            LFMPlus:FilterChanged()
+            LFMPlusFrame:FilterChanged()
           end,
           order = 30
         },
@@ -1860,7 +1860,7 @@ local options = {
           arg = "showPartyLeader",
           set = function(info, v)
             db[info.arg] = v
-            LFMPlus:FilterChanged()
+            LFMPlusFrame:FilterChanged()
           end,
           order = 30
         },
@@ -1876,7 +1876,7 @@ local options = {
             if v and not db.shortenActivityName then
               db.shortenActivityName = true
             end
-            LFMPlus:FilterChanged()
+            LFMPlusFrame:FilterChanged()
           end,
           order = 31
         },
@@ -1911,7 +1911,7 @@ local options = {
       end,
       set = function(info, v)
         db[info.arg] = v
-        LFMPlus:FilterChanged()
+        LFMPlusFrame:FilterChanged()
       end,
       disabled = function()
         return not db.enabled
@@ -2003,7 +2003,7 @@ local options = {
                 if v then
                   db.flagRealm = not v
                 end
-                LFMPlus:FilterChanged()
+                LFMPlusFrame:FilterChanged()
               end,
               order = 20
             },
@@ -2032,7 +2032,7 @@ local options = {
                   end
                 end
                 db[info.arg] = newTbl
-                LFMPlus:FilterChanged()
+                LFMPlusFrame:FilterChanged()
               end,
               arg = "flagRealmList",
               order = 30
@@ -2057,7 +2057,7 @@ local options = {
                 if ns.realmFilterPresets[value] then
                   db[info.arg] = ns.realmFilterPresets[value].realms
                 end
-                LFMPlus:FilterChanged()
+                LFMPlusFrame:FilterChanged()
               end,
               order = 40
             }
@@ -2090,7 +2090,7 @@ local options = {
                 if v then
                   db.filterPlayer = not v
                 end
-                LFMPlus:FilterChanged()
+                LFMPlusFrame:FilterChanged()
               end,
               order = 10
             },
@@ -2106,7 +2106,7 @@ local options = {
                 if v then
                   db.flagPlayer = not v
                 end
-                LFMPlus:FilterChanged()
+                LFMPlusFrame:FilterChanged()
               end,
               order = 20
             },
@@ -2135,7 +2135,7 @@ local options = {
                   end
                 end
                 db[info.arg] = newTbl
-                LFMPlus:FilterChanged()
+                LFMPlusFrame:FilterChanged()
               end,
               arg = "flagPlayerList",
               order = 30
