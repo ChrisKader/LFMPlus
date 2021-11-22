@@ -6,16 +6,12 @@
     "Lua.workspace.ignoreDir": [
       ".vscode",
       ".libs",
-      ".luacheckrc"
+      ".luacheckrc",
+      "*EmmyLua*"
     ],
     "Lua.workspace.library": [
       "c:/dev/vscode-wow-api/EmmyLua/API",
       "c:/dev/vscode-wow-api/EmmyLua/FrameXML"
-    ],
-    "Lua.diagnostics.globals": [
-      "DUNGEONS",
-      "CLASS",
-      "FLEX_RAID_LOCKOUT_LABEL"
     ],
     "lua.format.lineWidth": 500
 }
