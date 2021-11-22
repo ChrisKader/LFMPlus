@@ -2199,7 +2199,7 @@ function LFMPlus:Enable()
         end
 
         LFMPlus:HookScript(
-          LFGListApplicationDialogDescription.EditBox,
+          LFGListFrame.ApplicationDialog.Description.EditBox,
           "OnShow",
           function()
             if db.autoFocusSignUp then
@@ -2209,7 +2209,7 @@ function LFMPlus:Enable()
         )
 
         LFMPlus:HookScript(
-          LFGListApplicationDialogDescription.EditBox,
+          LFGListFrame.ApplicationDialog.Description.EditBox,
           "OnEnterPressed",
           function()
             if db.signupOnEnter then
