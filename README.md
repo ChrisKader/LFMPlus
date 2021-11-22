@@ -5,6 +5,12 @@ LFM+ (Looking for Mythic Plus) enhances the default LFG UI for Mythic+ activies 
 ![](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master/screenshots/1.png?raw=true "Addon Frame")  
 
 **To open the options for LFM+ type "/lfm" into chat.**  
+
+## Big Thanks
+  * **[kghost](https://github.com/kghost/)** - Author of https://github.com/kghost/premade-filter  
+  * **[WoWUIDev](https://discord.gg/t4YwvPDU)** Discord  
+  * **[WoW Addons;](https://discord.gg/PztpxeAa)** Discord  
+  * **[Ketho](https://github.com/Ketho)** Awesome VSCode [Plugin](https://github.com/Ketho/vscode-wow-api)!
 ## Addon Layout
 * **Active Role Filter**  
     * When enabled, only listings with a spot open for your current role are shown.  
