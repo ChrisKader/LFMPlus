@@ -65,7 +65,6 @@ All LFM+ functions apply ONLY to M+ dungeon listings.
         ![ss5](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master//screenshots/5.png?raw=true "Decline Queue")  
 
     * Applicant scores are shortened and the highest scoring key completed is shown next to the score.  
-    ![](https://raw.githubusercontent.com/ChrisKader/LFMPlus/master//screenshots/5.png?raw=true "Applicant Modifications")  
 
 * **Default UI Enhancements**
     "Most" settings can be toggled. If there is currently no option to toggle a specific setting, it will be added.  

@@ -628,7 +628,8 @@ function LFGListSearchEntry_Update(self)
   local _, appStatus, pendingStatus, appDuration = C_LFGList.GetApplicationInfo(resultID)
   local isApplication = (appStatus ~= "none" or pendingStatus)
   local isAppFinished = LFGListUtil_IsStatusInactive(appStatus) or LFGListUtil_IsStatusInactive(pendingStatus)
-
+  self.DataDisplay:ClearAllPoints()
+  self.DataDisplay:SetPoint("RIGHT",0,-1)
   --Update visibility based on whether we're an application or not
   self.isApplication = isApplication
   self.ApplicationBG:SetShown(isApplication and not isAppFinished)
