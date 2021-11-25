@@ -189,7 +189,7 @@ function LFMPlus:addFilteredId(s,id)
   if (not s.filteredIDs) then
     s.filteredIDs = {}
   end
-  if not LFMPlus:FindFilteredId(id,LFMPlusFrame) then
+  if not LFMPlus:FindFilteredId(id, LFMPlusFrame) then
     tinsert(s.filteredIDs, id)
   end
 end
@@ -1288,13 +1288,13 @@ function LFGListApplicationViewer_UpdateResultList(self)
         newApplicants[numApplicants] = applicantID
         totalHeight = totalHeight + LFGListApplicationViewerUtil_GetButtonHeight(applicantInfo.numMembers)
       else
-        LFMPlus:addFilteredId(LFMPlusFrame,applicantID)
+        LFMPlus:addFilteredId(LFMPlusFrame, applicantID)
       end
       LFMPlusFrame:UpdateDeclineButtonInfo()
     else
-        numApplicants = numApplicants + 1
-        newApplicants[numApplicants] = applicantID
-        totalHeight = totalHeight + LFGListApplicationViewerUtil_GetButtonHeight(applicantInfo.numMembers)
+      numApplicants = numApplicants + 1
+      newApplicants[numApplicants] = applicantID
+      totalHeight = totalHeight + LFGListApplicationViewerUtil_GetButtonHeight(applicantInfo.numMembers)
     end
   end
 
