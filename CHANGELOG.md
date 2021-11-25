@@ -1,4 +1,6 @@
-* Updated code to prevent taint errors.
-  - Big thanks to https://github.com/Tga123/premade-filter/commits/master
-  - A lot of code in the above fork was used as either inspiration or copy/pasted!
-  - Applicant filters will be disabled until further updates can be made.
+* Updated applicant filtering 
+  - LFM+ filters should now only be active for Mythic Plus activities.
+  - Support for other activities is planned in the future 
+    - Raids 
+    - PvP
+
