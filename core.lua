@@ -1240,12 +1240,16 @@ function LFGListApplicationViewer_UpdateResultList(self)
   --Cache off the group sizes for the scroll frame and the total height
   local totalHeight = 0
   self.applicantSizes = {}
+
+  local activeEntryInfo = C_LFGList.GetActiveEntryInfo()
+  local activityInfo = C_LFGList.GetActivityInfoTable(activeEntryInfo.activityID)
+
   for i = 1, #self.applicants do
     local applicantID = self.applicants[i]
     local applicantInfo = C_LFGList.GetApplicantInfo(applicantID)
     local matches = true
     local groupInfo = {}
-    if LFGListFrame.CategorySelection.selectedCategory == 2 then
+    if activityInfo.isMythicPlusActivity then
       for m = 1, applicantInfo.numMembers do
         local mName, mClass, mLocalizedClass, mLevel, mItemLevel, mHonorLevel, mTank, mHealer, mDamage, mAssignedRole, mRelationship, mDungeonScore, mPvpItemLevel = C_LFGList.GetApplicantMemberInfo(applicantID, m)
         table.insert(
@@ -1281,22 +1285,21 @@ function LFGListApplicationViewer_UpdateResultList(self)
         end
         matches = (classFoundInParty and ratingFoundInParty)
       end
-
       if matches then
-        self.applicantSizes[i] = applicantInfo.numMembers
         LFMPlus:removeFilteredId(applicantID)
-        numApplicants = numApplicants + 1
-        newApplicants[numApplicants] = applicantID
-        totalHeight = totalHeight + LFGListApplicationViewerUtil_GetButtonHeight(applicantInfo.numMembers)
       else
         LFMPlus:addFilteredId(LFMPlusFrame, applicantID)
       end
       LFMPlusFrame:UpdateDeclineButtonInfo()
-    else
+    end
+
+    if matches or (not activityInfo.isMythicPlusActivity) then
+      self.applicantSizes[i] = applicantInfo.numMembers
       numApplicants = numApplicants + 1
       newApplicants[numApplicants] = applicantID
       totalHeight = totalHeight + LFGListApplicationViewerUtil_GetButtonHeight(applicantInfo.numMembers)
     end
+
   end
 
   self.applicants = newApplicants
@@ -2203,46 +2206,30 @@ function LFMPlus:Enable()
           )
         end
 
-        LFMPlus:HookScript(
-          LFGListFrame.CategorySelection.FindGroupButton,
-          "OnClick",
-          function()
-            if LFGListFrame.CategorySelection.selectedCategory == 2 then
+        LFMPlus:SecureHookScript(LFGListFrame.SearchPanel,"OnShow",function()
+          if LFGListFrame.CategorySelection.selectedCategory == 2 then
               LFMPlus.mPlusSearch = LFGListFrame.CategorySelection.selectedCategory == 2
               ToggleFrames("search", "show")
             end
-          end
-        )
+        end)
 
-        LFMPlus:HookScript(
-          LFGListFrame.SearchPanel.BackButton,
-          "OnClick",
-          function()
+        LFMPlus:SecureHookScript(LFGListFrame.SearchPanel,"OnHide",function()
+          LFMPlus.mPlusSearch = false
+          ToggleFrames("search", "hide")
+        end)
+
+        LFMPlus:SecureHookScript(LFGListFrame.ApplicationViewer,"OnShow",function()
+          if LFGListFrame.CategorySelection.selectedCategory == 2 then
+            LFMPlus.mPlusListed = true
             LFMPlus.mPlusSearch = false
-            ToggleFrames("search", "hide")
+            ToggleFrames("app", "show")
           end
-        )
+        end)
 
-        LFMPlus:HookScript(
-          LFGListFrame.EntryCreation.ListGroupButton,
-          "OnClick",
-          function()
-            if LFGListFrame.CategorySelection.selectedCategory == 2 then
-              LFMPlus.mPlusListed = true
-              LFMPlus.mPlusSearch = false
-              ToggleFrames("app", "show")
-            end
-          end
-        )
-
-        LFMPlus:HookScript(
-          LFGListFrame.ApplicationViewer.RemoveEntryButton,
-          "OnClick",
-          function()
-            LFMPlus.mPlusListed = false
-            ToggleFrames("app", "hide")
-          end
-        )
+        LFMPlus:SecureHookScript(LFGListFrame.ApplicationViewer,"OnHide",function()
+          LFMPlus.mPlusListed = false
+          ToggleFrames("app", "hide")
+        end)
 
         LFMPlus:SecureHookScript(
           LFGListFrame.ApplicationViewer.BrowseGroupsButton,

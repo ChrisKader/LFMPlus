@@ -1,7 +1,4 @@
-**v1.4.4**
-* Updated applicant filtering 
-  - LFM+ filters should now only be active for Mythic Plus activities.
-  - Support for other activities is planned in the future 
-    - Raids 
-    - PvP 
-* Cleaned up duplicates in .luacheckrc
+**v1.4.5**
+* Updated Readme
+* Fix Data Displays to anchor to the default location when not showing m+ groups.
+* Fixed Issue [11 - Unable to scroll the applicant window.](https://github.com/ChrisKader/LFMPlus/issues/11) 
