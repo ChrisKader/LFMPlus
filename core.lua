@@ -325,6 +325,7 @@ ns.DebugLog = function(text,type)
     else
       message = message
     end
+    if DLAPI then DLAPI.DebugLog("LFM+", text) end
     print(messagePrefix .. message)
   end
 end

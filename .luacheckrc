@@ -137,6 +137,7 @@ globals = {
 	"LFGListUtil_SortSearchResultsCB",
 	"LFMPlus_GetPlaystyleString",
 	--Library Functions
+	"DLAPI",
 	"LibStub",
 	--C API
 	"C_ChallengeMode",

@@ -11,7 +11,8 @@
     ],
     "Lua.workspace.library": [
       "c:/dev/vscode-wow-api/EmmyLua/API",
-      "c:/dev/vscode-wow-api/EmmyLua/FrameXML"
+      "c:/dev/vscode-wow-api/EmmyLua/FrameXML",
+      "C:/dev/vscode-wow-api/EmmyLua/API/GlobalAPI"
     ],
     "lua.format.lineWidth": 500
 }
