@@ -23,3 +23,4 @@ ignore:
   - logo.jpg
   - screenshots
   - DevReadme.md
+  - bin
