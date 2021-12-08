@@ -12,6 +12,8 @@ externals:
   libs/LibStub: https://repos.curseforge.com/wow/libstub/trunk
   libs/LibUIDropDownMenu: https://repos.wowace.com/wow/libuidropdownmenu/trunk
 
+enable-nolib-creation: no
+
 manual-changelog:
   filename: CHANGELOG.md
   markup-type: markdown
@@ -20,3 +22,4 @@ ignore:
   - README.md
   - logo.jpg
   - screenshots
+  - DevReadme.md

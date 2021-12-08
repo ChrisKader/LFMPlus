@@ -1687,12 +1687,24 @@ local InitializeUI =
       info.isTitle = true
       info.notCheckable = true
       info.disabled = true
-      info.text = LFMPlus.mPlusSearch and DUNGEONS or CLASS
+      info.text = LFMPlus.mPlusSearch and 'TW M+' or CLASS
       info.owner = self
       LibDD:UIDropDownMenu_AddButton(info)
 
+      local normalButtonAdded = false
       for _, id in pairs(sortedKeys) do
+        if LFMPlus.mPlusSearch and ((not ns.constants.timewalk[id]) and (not normalButtonAdded)) then
+          info.justifyH = "CENTER"
+          info.isTitle = true
+          info.notCheckable = true
+          info.disabled = true
+          info.text = 'M+'
+          info.owner = self
+          LibDD:UIDropDownMenu_AddButton(info)
+          normalButtonAdded = true
+        end
         local item = activeList[id]
+        info.justifyH = "LEFT"
         info.isTitle = false
         info.func = LFMPlusDD_OnClick
         info.keepShownOnClick = true
@@ -1710,6 +1722,7 @@ local InitializeUI =
         info.arg1 = id
         LibDD:UIDropDownMenu_AddButton(info)
       end
+      info.justifyH = "CENTER"
       info.text = "Clear"
       info.notClickable = self:SelectedCount() < 1
       info.notCheckable = true

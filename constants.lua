@@ -30,12 +30,12 @@ ns.constants = {
     ["TOP"] = {cmID = 382, aID = 717}
   },
   timewalk = {
-    [459] = {shortName = "*EOA*"},
-    [460] = {shortName = "*DHT*"},
-    [462] = {shortName = "*NL*"},
-    [464] = {shortName = "*VOTW*"},
-    [463] = {shortName = "*BRH*"},
-    [466] = {shortName = "*COS*"},
+    [459] = {shortName = "EOA"},
+    [460] = {shortName = "DHT"},
+    [462] = {shortName = "NL"},
+    [464] = {shortName = "VOTW"},
+    [463] = {shortName = "BRH"},
+    [466] = {shortName = "COS"},
   },
   mapInfo = {
     [379] = {shortName = "PF", activityId = 691},
