@@ -1658,11 +1658,31 @@ local InitializeUI =
             end
           end
         end
+
+        for k,v in pairs(ns.constants.timewalk) do
+          local fullName, _, _, _, _, _, _, _, _, _, _, _, isMythicPlus, _, _ = C_LFGList.GetActivityInfo(k)
+          LFMPlusFrame.dungeonList[k] = {
+            id = k,
+            name = v.shortName,
+            longName = fullName,
+            challMapID = nil,
+            texture = nil,
+            backgroundTexture = nil,
+            checked = false,
+          }
+        end
+
         LFMPlusFrame.dungeonListLoaded = true
       end
       local activeList = LFMPlus.mPlusSearch and LFMPlusFrame.dungeonList or LFMPlusFrame.classList
       local info = LibDD:UIDropDownMenu_CreateInfo()
+      local sortedKeys = {}
 
+      for k,v in pairs(activeList) do
+        table.insert(sortedKeys,k)
+      end
+
+      table.sort(sortedKeys)
       info.justifyH = "CENTER"
       info.isTitle = true
       info.notCheckable = true
@@ -1671,7 +1691,8 @@ local InitializeUI =
       info.owner = self
       LibDD:UIDropDownMenu_AddButton(info)
 
-      for id, item in pairs(activeList) do
+      for _, id in pairs(sortedKeys) do
+        local item = activeList[id]
         info.isTitle = false
         info.func = LFMPlusDD_OnClick
         info.keepShownOnClick = true

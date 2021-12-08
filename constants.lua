@@ -29,6 +29,14 @@ ns.constants = {
     ["NW"] = {cmID = 376, aID = 713},
     ["TOP"] = {cmID = 382, aID = 717}
   },
+  timewalk = {
+    [459] = {shortName = "*EOA*"},
+    [460] = {shortName = "*DHT*"},
+    [462] = {shortName = "*NL*"},
+    [464] = {shortName = "*VOTW*"},
+    [463] = {shortName = "*BRH*"},
+    [466] = {shortName = "*COS*"},
+  },
   mapInfo = {
     [379] = {shortName = "PF", activityId = 691},
     [377] = {shortName = "DOS", activityId = 695},
@@ -69,3 +77,9 @@ ns.constants.actvityInfo = {
   [713] = ns.constants.mapInfo[376],
   [717] = ns.constants.mapInfo[382],
 }
+
+
+
+
+
+
