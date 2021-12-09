@@ -26,6 +26,8 @@ ignore:
   - screenshots
   - DevReadme.md
   - bin
+  - libs/LibUIDropDownMenu/Docs
+  - libs/LibUIDropDownMenu/!LibUIDropDownMenu.toc
 
 move-folders:
   LFMPlus/libs/LibUIDropDownMenu/LibUIDropDownMenu: LFMPlus/libs/LibUIDropDownMenu
