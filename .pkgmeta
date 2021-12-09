@@ -24,3 +24,6 @@ ignore:
   - screenshots
   - DevReadme.md
   - bin
+
+move-folders:
+  libs/LibUIDropDownMenu/LibUIDropDownMenu libs/LibUIDropDownMenu

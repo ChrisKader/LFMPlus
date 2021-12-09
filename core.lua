@@ -1,3 +1,4 @@
+--Rev/Hash: @file-revision@ - @file-hash@
 ---@type string
 local addonName, ---@type ns
   ns = ...
