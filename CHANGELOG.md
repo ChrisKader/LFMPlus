@@ -1,6 +1,3 @@
-**v1.4.9**  
-  * Fixed move-folders step in .pkgmeta.  
-
 **v1.4.8**  
   * Update .pkgmeta to move the LibUIDropDownMenu library into the proper folder (up one directory).  
 
