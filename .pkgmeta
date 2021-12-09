@@ -26,4 +26,4 @@ ignore:
   - bin
 
 move-folders:
-  libs/LibUIDropDownMenu/LibUIDropDownMenu: libs/LibUIDropDownMenu
+  LFM+/libs/LibUIDropDownMenu/LibUIDropDownMenu: LFM+/libs/LibUIDropDownMenu
