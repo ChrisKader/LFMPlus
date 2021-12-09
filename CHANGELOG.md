@@ -1,5 +1,7 @@
 **v1.4.8**  
   * Update .pkgmeta to move the LibUIDropDownMenu library into the proper folder (up one directory).  
+  * Renamed addon directory to LFMPlus.  
+    * Settings may be reset as a result.  
 
 **v1.4.7**
   * Updated dropdown menu into two sections  
