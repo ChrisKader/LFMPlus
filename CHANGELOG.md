@@ -1,3 +1,6 @@
+**v1.4.9**  
+  * Added short names for Legion TW M+ Dungeons.
+
 **v1.4.8**  
   * Update .pkgmeta to move the LibUIDropDownMenu library into the proper folder (up one directory).  
   * Renamed addon directory to LFMPlus.  

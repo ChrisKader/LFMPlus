@@ -83,21 +83,21 @@ All LFM+ functions apply ONLY to M+ dungeon listings.
     * Remove the shading overlay from the applicant viewer when you are not the leader.  
 
 ## WIP Enhancement/Features
-* Better localization support.  
-* More applicant filters  
-    * Only allow needed roles.  
-        * This would mean that if you only had a spot for a healer, any DPS would be added to the decline queue.  
-        * Groups with multiple players would need to be able to fit in your group.  
-            * If a group of 3 DPS applies and you only need 2 DPS, that applicant will be added to the decline queue.  
-    * Specify DPS type  
-        * Ranged/Melee/Spell Caster  
-    * Specify Utility  
-        * Lust/Brez/Immunity/ect  
-* Specify players/realms to be flagged or filtered out.  
-    * Via right click on unit frames, search listings or applications.  
-* Ability to track players you have done keys with and record notes that can be referenced when you see that player again.  
-* Ability to add a realm and/or player to the addons internal flagging list.  
-* User specified short names for dungeons.  
-* Scaling  
+  * Better localization support.  
+  * More applicant filters  
+      * Only allow needed roles.  
+          * This would mean that if you only had a spot for a healer, any DPS would be added to the decline queue.  
+          * Groups with multiple players would need to be able to fit in your group.  
+              * If a group of 3 DPS applies and you only need 2 DPS, that applicant will be added to the decline queue.  
+      * Specify DPS type  
+          * Ranged/Melee/Spell Caster  
+      * Specify Utility  
+          * Lust/Brez/Immunity/ect  
+  * Specify players/realms to be flagged or filtered out.  
+      * Via right click on unit frames, search listings or applications.  
+  * Ability to track players you have done keys with and record notes that can be referenced when you see that player again.  
+  * Ability to add a realm and/or player to the addons internal flagging list.  
+  * User specified short names for dungeons.  
+  * Scaling  
 
 **This addon does NOT use rating data from the RaiderIO addon and does NOT require the RaiderIO addon to be installed. Support for RaiderIO scoring/colors is possible if users would like it added.**

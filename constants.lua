@@ -76,6 +76,12 @@ ns.constants.actvityInfo = {
   [709] = ns.constants.mapInfo[381],
   [713] = ns.constants.mapInfo[376],
   [717] = ns.constants.mapInfo[382],
+  [459] = ns.constants.timewalk[459],
+  [460] = ns.constants.timewalk[460],
+  [462] = ns.constants.timewalk[462],
+  [464] = ns.constants.timewalk[464],
+  [463] = ns.constants.timewalk[463],
+  [466] = ns.constants.timewalk[466],
 }
 
 
