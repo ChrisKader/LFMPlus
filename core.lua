@@ -578,7 +578,6 @@ function LFMPlus:SearchEntry_OnEnter(s)
       end
     end
   end
-  end
   if info.age > 0 then
     GameTooltip:AddLine(string.format(LFG_LIST_TOOLTIP_AGE, SecondsToTime(info.age, false, false, 1, false)))
   end
