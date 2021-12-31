@@ -571,8 +571,7 @@ function LFMPlus:SearchEntry_OnEnter(s)
         leaderProfile = RaiderIO.GetProfile(info.leaderName, playerProfile.faction)
       end
       if leaderProfile then
-        local leaderMilestones = leaderProfile.mythicKeystoneProfile.sortedMilestones
-        for _, milestone in ipairs(leaderMilestones) do
+        for _, milestone in ipairs(leaderProfile.mythicKeystoneProfile.sortedMilestones or {}) do
           GameTooltip_AddNormalLine(GameTooltip, string.format("%s: %s", milestone.label, HIGHLIGHT_FONT_COLOR:WrapTextInColorCode(milestone.text)))
         end
       end
