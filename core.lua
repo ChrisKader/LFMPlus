@@ -564,6 +564,18 @@ function LFMPlus:SearchEntry_OnEnter(s)
     else
       GameTooltip_AddNormalLine(GameTooltip, DUNGEON_SCORE_DUNGEON_RATING_OVERTIME:format(leaderDungeonScoreInfo.mapName, color:WrapTextInColorCode(leaderDungeonScoreInfo.mapScore), leaderDungeonScoreInfo.bestRunLevel))
     end
+    if RaiderIO then
+      local playerProfile = RaiderIO.GetProfile("player")
+      local leaderProfile = nil
+      if playerProfile then
+        leaderProfile = RaiderIO.GetProfile(info.leaderName, playerProfile.faction)
+      end
+      if leaderProfile then
+        for _, milestone in ipairs(leaderProfile.mythicKeystoneProfile.sortedMilestones or {}) do
+          GameTooltip_AddNormalLine(GameTooltip, string.format("%s: %s", milestone.label, HIGHLIGHT_FONT_COLOR:WrapTextInColorCode(milestone.text)))
+        end
+      end
+    end
   end
   if info.age > 0 then
     GameTooltip:AddLine(string.format(LFG_LIST_TOOLTIP_AGE, SecondsToTime(info.age, false, false, 1, false)))
