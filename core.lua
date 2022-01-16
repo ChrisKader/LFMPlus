@@ -1660,9 +1660,10 @@ local InitializeUI =
           end
         end
 
+        -- Disable timewalking.
         for k,v in pairs(ns.constants.timewalk) do
           local fullName, _, _, _, _, _, _, _, _, _, _, _, isMythicPlus, _, _ = C_LFGList.GetActivityInfo(k)
-          LFMPlusFrame.dungeonList[k] = {
+          --[[ LFMPlusFrame.dungeonList[k] = {
             id = k,
             name = v.shortName,
             longName = fullName,
@@ -1670,7 +1671,7 @@ local InitializeUI =
             texture = nil,
             backgroundTexture = nil,
             checked = false,
-          }
+          } ]]
         end
 
         LFMPlusFrame.dungeonListLoaded = true
