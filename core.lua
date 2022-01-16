@@ -1684,14 +1684,14 @@ local InitializeUI =
         table.insert(sortedKeys,k)
       end
 
-      table.sort(sortedKeys)
+--[[       table.sort(sortedKeys)
       info.justifyH = "CENTER"
       info.isTitle = true
       info.notCheckable = true
       info.disabled = true
       info.text = LFMPlus.mPlusSearch and 'TW M+' or CLASS
       info.owner = self
-      LibDD:UIDropDownMenu_AddButton(info)
+      LibDD:UIDropDownMenu_AddButton(info) ]]
 
       local normalButtonAdded = false
       for _, id in pairs(sortedKeys) do
