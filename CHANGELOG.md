@@ -1,3 +1,7 @@
+**v1.5.0**
+  * Disaled Legion TW M+ Dungeons
+  * Merged [PR 13](https://github.com/ChrisKader/LFMPlus/pull/13). Thanks [WanderingFox](https://github.com/WanderingFox)
+
 **v1.4.9**  
   * Added short names for Legion TW M+ Dungeons.
 
