@@ -393,28 +393,29 @@ function LFMPlus:GetTooltipInfo(resultID)
   local memberList = {}
 
   for i = 1, numMembers do
-    local role, class, classLocalized = C_LFGList.GetSearchResultMemberInfo(resultID, i)
+    local role, class, classLocalized, specLocalized = C_LFGList.GetSearchResultMemberInfo(resultID, i)
+    local classSpec = string.format("%s (%s)",classLocalized, specLocalized)
     local info = {
       role = _G[role],
-      title = classLocalized,
+      title = classSpec,
       color = RAID_CLASS_COLORS[class] or NORMAL_FONT_COLOR
     }
 
     table.insert(memberList, info)
 
-    if not classCounts[class] then
-      classCounts[class] = {
+    if not classCounts[classSpec] then
+      classCounts[classSpec] = {
         title = info.title,
         color = info.color,
         counts = {}
       }
     end
 
-    if not classCounts[class].counts[info.role] then
-      classCounts[class].counts[info.role] = 0
+    if not classCounts[classSpec].counts[info.role] then
+      classCounts[classSpec].counts[info.role] = 0
     end
 
-    classCounts[class].counts[info.role] = classCounts[class].counts[info.role] + 1
+    classCounts[classSpec].counts[info.role] = classCounts[classSpec].counts[info.role] + 1
   end
 
   local friendList = {}
@@ -1077,6 +1078,7 @@ function LFGListSearchPanel_UpdateResultList(self)
       local activityInfoTable = C_LFGList.GetActivityInfoTable(activityID, nil, searchResultInfo.isWarMode)
       local memberCounts = C_LFGList.GetSearchResultMemberCounts(resultID)
       local playerRole = GetSpecializationRole(GetSpecialization())
+
       local friendsOrGuild = (searchResultInfo.numBNetFriends or 0) + (searchResultInfo.numCharFriends or 0) + (searchResultInfo.numGuildMates or 0)
       if not minAge or (age < minAge) then
         minAge = age

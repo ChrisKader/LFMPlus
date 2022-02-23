@@ -1,3 +1,6 @@
+**1.5.1**
+  * Added spec name to tooltip info.
+
 **v1.5.0**
   * Disaled Legion TW M+ Dungeons
   * Merged [PR 13](https://github.com/ChrisKader/LFMPlus/pull/13). Thanks [WanderingFox](https://github.com/WanderingFox)
