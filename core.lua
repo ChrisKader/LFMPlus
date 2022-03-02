@@ -570,7 +570,7 @@ function LFMPlus:SearchEntry_OnEnter(s)
 
       if pastScore > 0 then
           local color = C_ChallengeMode.GetDungeonScoreRarityColor(pastScore) or HIGHLIGHT_FONT_COLOR
-          GameTooltip:AddLine(string.format("S%s Score: %s", pastSeason, color:WrapTextInColorCode(pastScore)))
+          GameTooltip:AddLine(string.format("S%s Rating: %s", pastSeason, color:WrapTextInColorCode(pastScore)))
       end
     end
   end
