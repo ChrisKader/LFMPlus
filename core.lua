@@ -1,4 +1,4 @@
---Rev/Hash: 106 - b58fb409526c7b79e37dd4c6fe23863d7edb619b
+--Rev/Hash: @file-revision@ - @file-hash@
 ---@type string
 local addonName, ---@type ns
   ns = ...
