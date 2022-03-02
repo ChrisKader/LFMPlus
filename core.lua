@@ -564,7 +564,7 @@ function LFMPlus:SearchEntry_OnEnter(s)
     GameTooltip:AddLine(DUNGEON_SCORE_LEADER:format(color:WrapTextInColorCode(info.leaderOverallDungeonScore)))
 
     -- add last season score if present
-    if leaderProfile.mythicKeystoneProfile then
+    if leaderProfile and leaderProfile.mythicKeystoneProfile then
       local pastScore = leaderProfile.mythicKeystoneProfile.mplusPrevious.score or 0
       local pastSeason = leaderProfile.mythicKeystoneProfile.mplusPrevious.season + 1 or 0
 
