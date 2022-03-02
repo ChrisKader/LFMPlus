@@ -1,4 +1,4 @@
---Rev/Hash: @file-revision@ - @file-hash@
+--Rev/Hash: 106 - b58fb409526c7b79e37dd4c6fe23863d7edb619b
 ---@type string
 local addonName, ---@type ns
   ns = ...
@@ -540,8 +540,19 @@ function LFMPlus:SearchEntry_OnEnter(s)
     GameTooltip:AddLine(" ")
   end
 
+  local playerProfile = nil
+  local leaderProfile = nil
+
   if info.leaderName then
     GameTooltip:AddLine(string.format(LFG_LIST_TOOLTIP_LEADER, info.leaderName))
+    -- load raider.io info if present
+    if RaiderIO then
+      playerProfile = RaiderIO.GetProfile("player")
+      leaderProfile = nil
+      if playerProfile then
+        leaderProfile = RaiderIO.GetProfile(info.leaderName, playerProfile.faction)
+      end
+    end
   end
   if info.isRatedPvpActivity and info.leaderPvpRatingInfo then
     GameTooltip_AddNormalLine(GameTooltip, PVP_RATING_GROUP_FINDER:format(info.leaderPvpRatingInfo.activityName, info.leaderPvpRatingInfo.rating, PVPUtil.GetTierName(info.leaderPvpRatingInfo.tier)))
@@ -551,6 +562,17 @@ function LFMPlus:SearchEntry_OnEnter(s)
       color = HIGHLIGHT_FONT_COLOR
     end
     GameTooltip:AddLine(DUNGEON_SCORE_LEADER:format(color:WrapTextInColorCode(info.leaderOverallDungeonScore)))
+
+    -- add last season score if present
+    if leaderProfile.mythicKeystoneProfile then
+      local pastScore = leaderProfile.mythicKeystoneProfile.mplusPrevious.score or 0
+      local pastSeason = leaderProfile.mythicKeystoneProfile.mplusPrevious.season + 1 or 0
+
+      if pastScore > 0 then
+          local color = C_ChallengeMode.GetDungeonScoreRarityColor(pastScore) or HIGHLIGHT_FONT_COLOR
+          GameTooltip:AddLine(string.format("S%s Score: %s", pastSeason, color:WrapTextInColorCode(pastScore)))
+      end
+    end
   end
   if info.isMythicPlusActivity and info.leaderDungeonScoreInfo then
     local leaderDungeonScoreInfo = info.leaderDungeonScoreInfo
@@ -565,16 +587,11 @@ function LFMPlus:SearchEntry_OnEnter(s)
     else
       GameTooltip_AddNormalLine(GameTooltip, DUNGEON_SCORE_DUNGEON_RATING_OVERTIME:format(leaderDungeonScoreInfo.mapName, color:WrapTextInColorCode(leaderDungeonScoreInfo.mapScore), leaderDungeonScoreInfo.bestRunLevel))
     end
-    if RaiderIO then
-      local playerProfile = RaiderIO.GetProfile("player")
-      local leaderProfile = nil
-      if playerProfile then
-        leaderProfile = RaiderIO.GetProfile(info.leaderName, playerProfile.faction)
-      end
-      if leaderProfile then
-        for _, milestone in ipairs(leaderProfile.mythicKeystoneProfile.sortedMilestones or {}) do
-          GameTooltip_AddNormalLine(GameTooltip, string.format("%s: %s", milestone.label, HIGHLIGHT_FONT_COLOR:WrapTextInColorCode(milestone.text)))
-        end
+
+    -- add in dungeon run counts from raider.io
+    if leaderProfile then
+      for _, milestone in ipairs(leaderProfile.mythicKeystoneProfile.sortedMilestones or {}) do
+        GameTooltip_AddNormalLine(GameTooltip, string.format("%s: %s", milestone.label, HIGHLIGHT_FONT_COLOR:WrapTextInColorCode(milestone.text)))
       end
     end
   end
