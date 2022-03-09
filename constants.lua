@@ -23,11 +23,13 @@ ns.constants = {
     ["PF"] = {cmID = 379, aID = 691},
     ["DOS"] = {cmID = 377, aID = 695},
     ["HOA"] = {cmID = 378, aID = 699},
-    ["MOTS"] = {cmID = 375, aID = 703},
+    ["MISTS"] = {cmID = 375, aID = 703},
     ["SD"] = {cmID = 380, aID = 705},
     ["SOA"] = {cmID = 381, aID = 709},
     ["NW"] = {cmID = 376, aID = 713},
-    ["TOP"] = {cmID = 382, aID = 717}
+    ["TOP"] = {cmID = 382, aID = 717},
+    ["STRT"] = {cmID = 391, aID = 1016},
+    ["GMBT"] = {cmdID = 392, aID = 1017}
   },
   timewalk = {
     [459] = {shortName = "EOA"},
@@ -41,11 +43,13 @@ ns.constants = {
     [379] = {shortName = "PF", activityId = 691},
     [377] = {shortName = "DOS", activityId = 695},
     [378] = {shortName = "HOA", activityId = 699},
-    [375] = {shortName = "MOTS", activityId = 703},
+    [375] = {shortName = "MISTS", activityId = 703},
     [380] = {shortName = "SD", activityId = 705},
     [381] = {shortName = "SOA", activityId = 709},
     [376] = {shortName = "NW", activityId = 713},
     [382] = {shortName = "TOP", activityId = 717},
+    [391] = {shortName = "STRT", activityId = 1016},
+    [392] = {shortName = "GMBT", activityId = 1017}
   },
   trackedEvents = {
     ["LFG_LIST_AVAILABILITY_UPDATE"] = false,
@@ -76,6 +80,8 @@ ns.constants.actvityInfo = {
   [709] = ns.constants.mapInfo[381],
   [713] = ns.constants.mapInfo[376],
   [717] = ns.constants.mapInfo[382],
+  [1016] = ns.constants.mapInfo[391],
+  [1017] = ns.constants.mapInfo[392],
   [459] = ns.constants.timewalk[459],
   [460] = ns.constants.timewalk[460],
   [462] = ns.constants.timewalk[462],

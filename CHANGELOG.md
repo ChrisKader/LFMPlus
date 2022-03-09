@@ -1,3 +1,7 @@
+**1.5.2**
+  * Added Streets and Gambit to selection dropdown.
+  * 
+
 **1.5.1**
   * Added spec name to tooltip info.
 

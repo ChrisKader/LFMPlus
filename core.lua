@@ -400,13 +400,18 @@ function LFMPlus:GetTooltipInfo(resultID)
       title = classSpec,
       color = RAID_CLASS_COLORS[class] or NORMAL_FONT_COLOR
     }
-
+    local roleNumber = {
+      ['TANK'] = 1,
+      ['HEALER'] = 2,
+      ['DAMAGER'] = 3
+    }
     table.insert(memberList, info)
 
     if not classCounts[classSpec] then
       classCounts[classSpec] = {
         title = info.title,
         color = info.color,
+        role=_G[role] ,
         counts = {}
       }
     end
@@ -416,6 +421,10 @@ function LFMPlus:GetTooltipInfo(resultID)
     end
 
     classCounts[classSpec].counts[info.role] = classCounts[classSpec].counts[info.role] + 1
+
+    table.sort(classCounts,function(a,b)
+      return roleNumber[a.role] < roleNumber[b.role];
+    end)
   end
 
   local friendList = {}
@@ -1644,6 +1653,22 @@ local InitializeUI =
           LFMPlusFrame.dungeonListLoaded = false
           return
         end
+        for shortName, dungeon in pairs(ns.constants.dungeons) do
+          local name, id, timeLimit, texture, backgroundTexture = C_ChallengeMode.GetMapUIInfo(dungeon.cmID)
+          table.insert(
+            mapChallengeModeInfo,
+            {
+              id = dungeon.aID,
+              name = shortName,
+              longName = name,
+              challMapID = id,
+              timeLimit = timeLimit,
+              texture = texture,
+              backgroundTexture = backgroundTexture,
+              checked = false
+            }
+          )
+        end
         for _, mapChallengeModeID in pairs(mapChallengeModeIDs) do
           local name, id, timeLimit, texture, backgroundTexture = C_ChallengeMode.GetMapUIInfo(mapChallengeModeID)
           table.insert(
@@ -1664,7 +1689,7 @@ local InitializeUI =
           local fullName, _, _, _, _, _, _, _, _, _, _, _, isMythicPlus, _, _ = C_LFGList.GetActivityInfo(activityID)
           if isMythicPlus then
             for _, challMap in pairs(mapChallengeModeInfo) do
-              if fullName:find(challMap.longName) then
+              if ns.constants.mapInfo[challMap.challMapID].activityId == activityID then
                 local dungeon = challMap
                 dungeon.id = activityID
                 dungeon.name = ns.constants.actvityInfo[activityID].shortName or fullName
