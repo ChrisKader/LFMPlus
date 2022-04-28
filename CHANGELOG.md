@@ -1,6 +1,7 @@
 **1.5.2**
-  * Added Streets and Gambit to selection dropdown.
-  * 
+  * Fixed [#20](https://github.com/ChrisKader/LFMPlus/issues/20): Added Streets and Gambit to selection dropdown.
+  * Fixed [#17](https://github.com/ChrisKader/LFMPlus/issues/17): Updated code to check settings for double click applications.
+  * Fixed [#14](https://github.com/ChrisKader/LFMPlus/issues/14): Check for showing RaiderIO frame to adjust tooltip anchor.
 
 **1.5.1**
   * Added spec name to tooltip info.

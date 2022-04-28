@@ -1,9 +1,17 @@
 --Rev/Hash: @file-revision@ - @file-hash@
 ---@type string
-local addonName, ---@type ns
+local addonName,
+---@type ns
   ns = ...
 
+---@module'globals'
+
+---@type ns.constants.defaults.global
+local db
+
 local LibDD = LibStub:GetLibrary("LibUIDropDownMenu-4.0")
+
+---@type LFMPlus
 local LFMPlus = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
 
 ---@class LFMPlusFrame:Frame
@@ -62,7 +70,6 @@ end
 function LFGListEntryCreation_SetTitleFromActivityInfo(_)
 end
 
----@class defaults
 local defaults = {
   global = {
     -- Control Panel Defaults
@@ -107,9 +114,6 @@ local defaults = {
     }
   }
 }
-
----@type defaults.global
-local db
 
 ns.Init = false
 
@@ -515,7 +519,16 @@ function LFMPlus:SearchEntry_OnEnter(s)
   local info = LFMPlus:GetTooltipInfo(s.resultID)
 
   -- setup tooltip
-  GameTooltip:SetOwner(s, "ANCHOR_RIGHT", 25, 0)
+  local owner, anchor, x, y = s, "ANCHOR_RIGHT", 25, 0
+
+  if RaiderIO_ProfileTooltip and RaiderIO_ProfileTooltip:IsShown() then
+    owner, anchor, x = RaiderIO_ProfileTooltip, "ANCHOR_NONE", 0
+    GameTooltip:SetOwner(owner, anchor, x, y)
+    GameTooltip:SetPoint("TOPLEFT",owner,"TOPRIGHT")
+  else
+    GameTooltip:SetOwner(owner, anchor, x, y)
+  end
+
   GameTooltip:SetText(info.name, 1, 1, 1, true)
   GameTooltip:AddLine(info.activityName)
 
@@ -2259,8 +2272,8 @@ local options = {
 }
 
 function LFMPlus:OnInitialize()
-  ---@type defaults.global
-  db = LibStub("AceDB-3.0"):New(ns.constants.friendlyName .. "DB", defaults, true).global
+  ---@type ns.constants.defaults.global
+  db = LibStub("AceDB-3.0"):New(ns.constants.friendlyName .. "DB", ns.constants.defaults, true).global
 
   -- Register options table and slash command
   LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable(addonName, options, true)
@@ -2294,7 +2307,9 @@ function LFMPlus:Enable()
             v,
             "OnDoubleClick",
             function(s)
-              LFGListApplicationDialog_Show(LFGListApplicationDialog, s.resultID)
+              if db.lfgListingDoubleClick then
+                LFGListApplicationDialog_Show(LFGListApplicationDialog, s.resultID)
+              end
             end
           )
         end

@@ -1,7 +1,8 @@
----@type ns
-local _, ns = ...
+local _,
+---@class ns
+ns= ...
 
-
+---@class ns.constants
 ns.constants = {
   playStyleString = {
     [1] = "",
@@ -29,7 +30,7 @@ ns.constants = {
     ["NW"] = {cmID = 376, aID = 713},
     ["TOP"] = {cmID = 382, aID = 717},
     ["STRT"] = {cmID = 391, aID = 1016},
-    ["GMBT"] = {cmdID = 392, aID = 1017}
+    ["GMBT"] = {cmID = 392, aID = 1017}
   },
   timewalk = {
     [459] = {shortName = "EOA"},
@@ -68,7 +69,55 @@ ns.constants = {
     ["PARTY_LEADER_CHANGED"] = true,
     ["GROUP_ROSTER_UPDATE"] = true
   },
-  searchEntryFrames = {"classDot", "roleIcon", "classBar"}
+  searchEntryFrames = {"classDot", "roleIcon", "classBar"},
+  ---@class ns.constants.defaults
+  defaults = {
+    ---@class ns.constants.defaults.global
+    global = {
+      -- Control Panel Defaults
+      enabled = true,
+      showLeaderScore = true,
+      showRealmName = true,
+      shortenActivityName = true,
+      alwaysShowFriends = true,
+      lfgListingDoubleClick = true,
+      signupOnEnter = false,
+      autoFocusSignUp = false,
+      alwaysShowRoles = false,
+      hideAppViewerOverlay = false,
+      enableLFGDropdown = true,
+      excludePlayerList = true,
+      flagPlayer = false,
+      filterPlayer = false,
+      flagPlayerList = {},
+      excludeRealmList = true,
+      flagRealm = false,
+      filterRealm = false,
+      flagRealmList = {},
+      activeRoleFilter = false,
+      classFilter = false,
+      -- UI Defaults
+      ratingFilter = false,
+      ratingFilterMin = 0,
+      ratingFilterMax = 0,
+      dungeonFilter = false,
+      realmList = {},
+      classRoleDisplay = "def",
+      showPartyLeader = false,
+      dungeonAbbr = {
+        [691] = "PF",
+        [695] = "DOS",
+        [699] = "HOA",
+        [703] = "MOTS",
+        [705] = "SD",
+        [709] = "SOA",
+        [713] = "NW",
+        [717] = "TOP",
+        [1016] = "STRT",
+        [1017] = "GMBT"
+      }
+    }
+  },
 }
 
 ns.constants.actvityInfo = {

@@ -1,18 +1,37 @@
 {
     "Lua.runtime.version": "Lua 5.1",
-    "Lua.completion.showParams": false,
+    "Lua.completion.showParams": true,
     "Lua.completion.displayContext": 0,
     "editor.tabSize": 2,
     "Lua.workspace.ignoreDir": [
       ".vscode",
-      ".libs",
       ".luacheckrc",
-      "*EmmyLua*"
+      "*EmmyLua*",
+      "locale"
     ],
     "Lua.workspace.library": [
-      "c:/dev/vscode-wow-api/EmmyLua/API",
-      "c:/dev/vscode-wow-api/EmmyLua/FrameXML",
-      "C:/dev/vscode-wow-api/EmmyLua/API/GlobalAPI"
+      "${workspaceFolder}/../LFMPlus/libs/**"
     ],
-    "lua.format.lineWidth": 500
+    
+    "Lua.format.lineWidth": 500,
+    "Lua.diagnostics.libraryFiles": "Opened",
+    "Lua.workspace.ignoreSubmodules": true,
+    "wowAPI.emmyLua.loadFrameXML": false,
+    "Lua.completion.autoRequire": false,
+    "Lua.diagnostics.ignoredFiles": "Disable",
+    "Lua.semantic.keyword": true,
+    "Lua.hint.enable": true,
+    "Lua.hint.paramName": "All",
+    "Lua.hint.setType": true,
+    "Lua.IntelliSense.traceFieldInject": true,
+    "Lua.IntelliSense.traceReturn": true,
+    "Lua.window.statusBar": true,
+    "Lua.workspace.maxPreload": 30000,
+    "Lua.workspace.preloadFileSize": 2000,
+    "Lua.workspace.useGitIgnore": false,
+    "Lua.diagnostics.globals": [
+    ],
+    "Lua.runtime.special": {
+      "LibStub:GetLibrary(": "require"
+    }
 }
