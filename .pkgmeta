@@ -21,7 +21,8 @@ manual-changelog:
   markup-type: markdown
 
 ignore:
-  - README.md
+  - 3rd
+  - DevReadme.md
   - logo.jpg
   - screenshots
   - DevReadme.md

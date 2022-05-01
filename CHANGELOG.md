@@ -1,3 +1,12 @@
+**1.5.3**
+  * LFGListApplicationDialog_Show is replaced with a custom one that will not clear your application note when applying to different dungeons.
+  * Double clicking on a listing with an active application will cancel your application (The same as clicking the 'Cancel' button).
+  * When you have "Double-Click Sign Up" enabled, LFM+ will click the second sign up button for you (The dialog window tht shows roles).
+    * This will only happen if you have a note set. Once you set a note, it will not be cleared (see the first entry of this versions change log.)
+    * If you want to change your note, hold the SHIFT key will double clicking on a listing.
+  * Tooltip is now anchored to the to right corner of the LFG Frame or the RaiderIO frame if shown.
+  * Updated listing Data Display logic so that each Data Display under "Dungeons" is updated in the same manner.
+
 **1.5.2**
   * Fixed [#20](https://github.com/ChrisKader/LFMPlus/issues/20): Added Streets and Gambit to selection dropdown.
   * Fixed [#17](https://github.com/ChrisKader/LFMPlus/issues/17): Updated code to check settings for double click applications.

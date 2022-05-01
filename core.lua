@@ -1,10 +1,9 @@
 --Rev/Hash: @file-revision@ - @file-hash@
+---wow.api.start
 ---@type string
 local addonName,
 ---@type ns
   ns = ...
-
----@module'globals'
 
 ---@type ns.constants.defaults.global
 local db
@@ -514,20 +513,19 @@ local function LFGListSearchPanel_UpdateAdditionalButtons(self,totalHeight,showN
 
   return totalHeight
 end
-
+RaiderIO_ProfileTooltip = RaiderIO_ProfileTooltip
 function LFMPlus:SearchEntry_OnEnter(s)
   local info = LFMPlus:GetTooltipInfo(s.resultID)
-
+  if not info then return end
   -- setup tooltip
-  local owner, anchor, x, y = s, "ANCHOR_RIGHT", 25, 0
+  local owner, anchor, x, y = LFGListFrame.SearchPanel, "ANCHOR_NONE", 0, 0
 
   if RaiderIO_ProfileTooltip and RaiderIO_ProfileTooltip:IsShown() then
-    owner, anchor, x = RaiderIO_ProfileTooltip, "ANCHOR_NONE", 0
-    GameTooltip:SetOwner(owner, anchor, x, y)
-    GameTooltip:SetPoint("TOPLEFT",owner,"TOPRIGHT")
-  else
-    GameTooltip:SetOwner(owner, anchor, x, y)
+    owner = RaiderIO_ProfileTooltip
   end
+
+  GameTooltip:SetOwner(owner, anchor, x, y)
+  GameTooltip:SetPoint("TOPLEFT",owner,"TOPRIGHT")
 
   GameTooltip:SetText(info.name, 1, 1, 1, true)
   GameTooltip:AddLine(info.activityName)
@@ -586,7 +584,7 @@ function LFMPlus:SearchEntry_OnEnter(s)
     GameTooltip:AddLine(DUNGEON_SCORE_LEADER:format(color:WrapTextInColorCode(info.leaderOverallDungeonScore)))
 
     -- add last season score if present
-    if leaderProfile and leaderProfile.mythicKeystoneProfile then
+    if leaderProfile and leaderProfile.mythicKeystoneProfile and leaderProfile.mythicKeystoneProfile.mplusPrevious then
       local pastScore = leaderProfile.mythicKeystoneProfile.mplusPrevious.score or 0
       local pastSeason = leaderProfile.mythicKeystoneProfile.mplusPrevious.season + 1 or 0
 
@@ -598,22 +596,31 @@ function LFMPlus:SearchEntry_OnEnter(s)
   end
   if info.isMythicPlusActivity and info.leaderDungeonScoreInfo then
     local leaderDungeonScoreInfo = info.leaderDungeonScoreInfo
-    local color = C_ChallengeMode.GetSpecificDungeonOverallScoreRarityColor(leaderDungeonScoreInfo.mapScore)
-    if not color then
-      color = HIGHLIGHT_FONT_COLOR
-    end
-    if leaderDungeonScoreInfo.mapScore == 0 then
-      GameTooltip_AddNormalLine(GameTooltip, DUNGEON_SCORE_PER_DUNGEON_NO_RATING:format(leaderDungeonScoreInfo.mapName, leaderDungeonScoreInfo.mapScore))
-    elseif leaderDungeonScoreInfo.finishedSuccess then
-      GameTooltip_AddNormalLine(GameTooltip, DUNGEON_SCORE_DUNGEON_RATING:format(leaderDungeonScoreInfo.mapName, color:WrapTextInColorCode(leaderDungeonScoreInfo.mapScore), leaderDungeonScoreInfo.bestRunLevel))
-    else
-      GameTooltip_AddNormalLine(GameTooltip, DUNGEON_SCORE_DUNGEON_RATING_OVERTIME:format(leaderDungeonScoreInfo.mapName, color:WrapTextInColorCode(leaderDungeonScoreInfo.mapScore), leaderDungeonScoreInfo.bestRunLevel))
-    end
+    if leaderDungeonScoreInfo then
+      local color = C_ChallengeMode.GetSpecificDungeonOverallScoreRarityColor(leaderDungeonScoreInfo.mapScore)
+      if not color then
+        color = HIGHLIGHT_FONT_COLOR
+      end
 
-    -- add in dungeon run counts from raider.io
-    if leaderProfile then
-      for _, milestone in ipairs(leaderProfile.mythicKeystoneProfile.sortedMilestones or {}) do
-        GameTooltip_AddNormalLine(GameTooltip, string.format("%s: %s", milestone.label, HIGHLIGHT_FONT_COLOR:WrapTextInColorCode(milestone.text)))
+      local bestDungeonLine = ""
+      if leaderDungeonScoreInfo.mapScore == 0 then
+        bestDungeonLine = DUNGEON_SCORE_PER_DUNGEON_NO_RATING:format(leaderDungeonScoreInfo.mapName, leaderDungeonScoreInfo.mapScore)
+      elseif leaderDungeonScoreInfo.finishedSuccess then
+        bestDungeonLine = DUNGEON_SCORE_DUNGEON_RATING:format(leaderDungeonScoreInfo.mapName, color:WrapTextInColorCode(leaderDungeonScoreInfo.mapScore), leaderDungeonScoreInfo.bestRunLevel)
+      else
+        bestDungeonLine = DUNGEON_SCORE_DUNGEON_RATING_OVERTIME:format(leaderDungeonScoreInfo.mapName, color:WrapTextInColorCode(leaderDungeonScoreInfo.mapScore), leaderDungeonScoreInfo.bestRunLevel)
+      end
+
+      GameTooltip_AddNormalLine(GameTooltip, bestDungeonLine:gsub('Level ','+'))
+
+      -- add in dungeon run counts from raider.io
+      if leaderProfile and leaderProfile.mythicKeystoneProfile then
+        local twenty = leaderProfile.mythicKeystoneProfile.keystoneTwentyPlus or 0
+        local fifteen = leaderProfile.mythicKeystoneProfile.keystoneFifteenPlus or 0
+        local ten = leaderProfile.mythicKeystoneProfile.keystoneTenPlus or 0
+        local five = leaderProfile.mythicKeystoneProfile.keystoneFivePlus or 0
+        local labelString = string.format('%s/%s/%s/%s', twenty, fifteen, ten, five);
+        GameTooltip_AddNormalLine(GameTooltip, string.format("%s: %s", 'Timed (+20/15/10/5)', HIGHLIGHT_FONT_COLOR:WrapTextInColorCode(labelString)))
       end
     end
   end
@@ -841,7 +848,7 @@ function LFGListSearchEntry_Update(self)
     end
   end
 
-  if db.enabled and activityInfo.isMythicPlusActivity then
+  if db.enabled and (activityInfo.isMythicPlusActivity or activityInfo.displayType == Enum.LfgListDisplayType.RoleEnumerate) then
     local playstyleString = GREEN_FONT_COLOR:WrapTextInColorCode(ns.constants.playStyleString[searchResultInfo.playstyle] or "")
     local numMembers = searchResultInfo.numMembers
     local orderIndexes = {}
@@ -1208,6 +1215,27 @@ function LFGListSearchPanel_DoSearch(self)
   self.selectedResult = nil
 
   LFGListSearchPanel_UpdateResultList(self)
+end
+
+function LFGListApplicationDialog_Show(self, resultID)
+	local searchResultInfo = C_LFGList.GetSearchResultInfo(resultID);
+	--[[ if ( searchResultInfo.activityID ~= self.activityID ) then
+		C_LFGList.ClearApplicationTextFields();
+	end ]]
+
+	self.resultID = resultID;
+	self.activityID = searchResultInfo.activityID;
+  local applicationNote = self.Description.EditBox:GetText()
+	LFGListApplicationDialog_UpdateRoles(self);
+	StaticPopupSpecial_Show(self);
+  if db.lfgListingDoubleClick and applicationNote ~= "" then
+    if(IsShiftKeyDown()) then
+      print("LFM+: Shift detected, skipping auto sign up.")
+    else
+      LFGListApplicationDialog.SignUpButton:Click()
+      print("LFM+: Signed Up with Note: " .. self.Description.EditBox:GetText())
+    end
+  end
 end
 
 function LFGListUtil_SortSearchResultsCB(id1,id2)
@@ -2308,7 +2336,11 @@ function LFMPlus:Enable()
             "OnDoubleClick",
             function(s)
               if db.lfgListingDoubleClick then
-                LFGListApplicationDialog_Show(LFGListApplicationDialog, s.resultID)
+                if s.isApplication and s.CancelButton:IsShown() then
+                  s.CancelButton:Click()
+                else
+                  LFGListApplicationDialog_Show(LFGListApplicationDialog, s.resultID)
+                end
               end
             end
           )

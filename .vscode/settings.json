@@ -1,37 +1,31 @@
 {
-    "Lua.runtime.version": "Lua 5.1",
-    "Lua.completion.showParams": true,
-    "Lua.completion.displayContext": 0,
     "editor.tabSize": 2,
-    "Lua.workspace.ignoreDir": [
-      ".vscode",
-      ".luacheckrc",
-      "*EmmyLua*",
-      "locale"
+    "wowAPI.emmyLua.loadFrameXML": true,
+    "Lua.workspace.userThirdParty": [
+      "/home/ck/LFMPlus/3rd"
     ],
-    "Lua.workspace.library": [
-      "${workspaceFolder}/../LFMPlus/libs/**"
-    ],
-    
-    "Lua.format.lineWidth": 500,
-    "Lua.diagnostics.libraryFiles": "Opened",
-    "Lua.workspace.ignoreSubmodules": true,
-    "wowAPI.emmyLua.loadFrameXML": false,
-    "Lua.completion.autoRequire": false,
-    "Lua.diagnostics.ignoredFiles": "Disable",
-    "Lua.semantic.keyword": true,
-    "Lua.hint.enable": true,
-    "Lua.hint.paramName": "All",
-    "Lua.hint.setType": true,
-    "Lua.IntelliSense.traceFieldInject": true,
+    "Lua.workspace.ignoreSubmodules": false,
+    "Lua.IntelliSense.traceFieldInject":true,
     "Lua.IntelliSense.traceReturn": true,
-    "Lua.window.statusBar": true,
+    "Lua.runtime.version": "Lua 5.1",
+    "Lua.diagnostics.ignoredFiles": "Disable",
+    "Lua.diagnostics.libraryFiles": "Enable",
     "Lua.workspace.maxPreload": 30000,
     "Lua.workspace.preloadFileSize": 2000,
-    "Lua.workspace.useGitIgnore": false,
     "Lua.diagnostics.globals": [
+      "GameTooltip_SetTitle",
+      "GameTooltip_AddInstructionLine"
     ],
-    "Lua.runtime.special": {
-      "LibStub:GetLibrary(": "require"
-    }
+    "Lua.semantic.keyword": true,
+    "Lua.hint.enable": true,
+    "Lua.hint.setType": true,
+    "Lua.completion.autoRequire": false,
+    "Lua.workspace.useGitIgnore": false,
+    "Lua.runtime.plugin": "/home/ck/LFMPlus/3rd/wow/plugin.lua",
+    "Lua.workspace.library": [
+      "/home/ck/.vscode-server-insiders/extensions/ketho.wow-api-0.7.6/EmmyLua/API",
+      "/home/ck/.vscode-server-insiders/extensions/ketho.wow-api-0.7.6/EmmyLua/Optional",
+      "/home/ck/LFMPlus/3rd/wow/library"
+    ],
+    "Lua.workspace.checkThirdParty": false
 }
