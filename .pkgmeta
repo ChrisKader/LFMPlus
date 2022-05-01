@@ -17,7 +17,7 @@ externals:
 enable-nolib-creation: no
 
 manual-changelog:
-  filename: CHANGELOG.md
+  filename: RELEASE.md
   markup-type: markdown
 
 ignore:
@@ -25,7 +25,6 @@ ignore:
   - DevReadme.md
   - logo.jpg
   - screenshots
-  - DevReadme.md
   - bin
   - libs/LibUIDropDownMenu/Docs
   - libs/LibUIDropDownMenu/!LibUIDropDownMenu.toc
