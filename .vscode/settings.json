@@ -22,10 +22,5 @@
     "Lua.completion.autoRequire": false,
     "Lua.workspace.useGitIgnore": false,
     "Lua.runtime.plugin": "/home/ck/LFMPlus/3rd/wow/plugin.lua",
-    "Lua.workspace.library": [
-      "/home/ck/.vscode-server-insiders/extensions/ketho.wow-api-0.7.6/EmmyLua/API",
-      "/home/ck/.vscode-server-insiders/extensions/ketho.wow-api-0.7.6/EmmyLua/Optional",
-      "/home/ck/LFMPlus/3rd/wow/library"
-    ],
     "Lua.workspace.checkThirdParty": false
 }
