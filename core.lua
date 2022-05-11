@@ -2309,7 +2309,7 @@ function LFMPlus:OnInitialize()
   end
 end
 
-function LFMPlus:Enable()
+function LFMPlus:HookScripts()
   if not ns.FrameHooksRan then
     if PVEFrame:IsShown() then
       PVEFrame:Hide()
@@ -2432,6 +2432,10 @@ function LFMPlus:Enable()
       end
     )
   end
+end
+
+function LFMPlus:Enable()
+  LFMPlus:HookScripts()
 end
 
 function LFMPlus:Disable()
