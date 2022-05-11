@@ -132,18 +132,22 @@ function LFMPlus:ClearValues()
   LFMPlusFrame.DD.m = 3
 end
 
-function LFMPlus:formatMPlusRating(score)
-  if not score or type(score) ~= "number" then
-    score = 0
+---@param rating string|number
+---@param short boolean?
+---@param colored boolean?
+function LFMPlus:formatMPlusRating(rating, short, colored)
+  rating = type(rating) =="number" and rating or tonumber(rating or "0")
+  local returnString = tostring(rating)
+
+  if short then
+    returnString = string.format(rating >= 1000 and "%.2f%s" or "%.0f%s", rating >= 1000 and rating / 1000 or rating, rating >= 1000 and "k" or "")
   end
 
-  -- If the score is 1000 or larger, divide by 1000 to get a decimal, get the first 3 characters to prevent rounding and then add a K. Ex: 2563 = 2.5k
-  -- If the score is less than 1000, we simply store it in the shortScore variable.
+  if colored then
+    returnString = C_ChallengeMode.GetDungeonScoreRarityColor(rating):WrapTextInColorCode(returnString)
+  end
 
-  local shortScore = score >= 1000 and string.format("%3.2f", score / 1000):sub(1, 3) .. "k" or score
-  shortScore = string.format(ns.constants.lengths.score, shortScore)
-  local formattedScore = C_ChallengeMode.GetDungeonScoreRarityColor(score):WrapTextInColorCode(shortScore)
-  return formattedScore
+  return returnString
 end
 
 function LFMPlus:RemoveApplicantId(id)
@@ -1007,7 +1011,7 @@ function LFGListSearchEntry_Update(self)
     end
 
     if db.showLeaderScore and not searchResultInfo.isDelisted and LFMPlusFrame.dungeonList[searchResultInfo.activityID] then
-      local formattedLeaderScore = LFMPlus:formatMPlusRating(searchResultInfo.leaderOverallDungeonScore or 0)
+      local formattedLeaderScore = LFMPlus:formatMPlusRating(searchResultInfo.leaderOverallDungeonScore or 0, true, true)
       self.Name:SetText(formattedLeaderScore .. " " .. self.Name:GetText())
       self.ActivityName:SetWordWrap(false)
     end
@@ -1422,7 +1426,7 @@ local InitializeUI =
               local roleIcons = string.format("%s%s%s", CreateAtlasMarkup(tank and "roleicon-tiny-tank" or "groupfinder-icon-emptyslot", 10, 10), CreateAtlasMarkup(healer and "roleicon-tiny-healer" or "groupfinder-icon-emptyslot", 10, 10), CreateAtlasMarkup(damage and "roleicon-tiny-dps" or "groupfinder-icon-emptyslot", 10, 10))
 
               local header = CreateAtlasMarkup(((applicantID == self.nextAppDecline and memberIdx == 1) and "pvpqueue-sidebar-nextarrow" or ""), 10, 10)
-              local memberString = string.format("%s%s %s %s %s", header, LFMPlus:formatMPlusRating(dungeonScore), roleIcons, formattedName, string.format(ns.constants.lengths.server, server))
+              local memberString = string.format("%s%s %s %s %s", header, LFMPlus:formatMPlusRating(dungeonScore, true, true), roleIcons, formattedName, string.format(ns.constants.lengths.server, server))
               table.insert(groupEntry, memberString)
             end
             self.declineButtonInfo[applicantID] = groupEntry
@@ -1499,28 +1503,12 @@ local InitializeUI =
     end
 
     -- Create score filter slider
-    ---@class OptionsSliderTemplate:Frame
-    ---@field Text FontString
-    ---@field Low FontString
-    ---@field High FontString
-    ---@field SetValueStep function
-    ---@field SetObeyStepOnDrag function
-    ---@field SetMinMaxValues function
-    ---@field SetValue function
-    ---@field Enable function
-    ---@field Disable function
-    f.scoreMinFrame = CreateFrame("Slider", nil, f, "OptionsSliderTemplate")
-
-    f.scoreMinFrame.bottomPadding = 13
-    f.scoreMinFrame.layoutIndex = 3
-    f.scoreMinFrame.leftPadding = 35
-    f.scoreMinFrame.rightPadding = 15
-    f.scoreMinFrame.topPadding = 32
+    f.scoreMinFrame = CreateFrame("Slider", nil, f, "LFMPlusSliderTemplate")
 
     function f.scoreMinFrame:SetDisplayValue(value)
       self.noclick = true
       self:SetValue(value)
-      self.Value:SetText(LFMPlus:formatMPlusRating(value))
+      self.Text:SetText(LFMPlus:formatMPlusRating(value, true, true))
       db.ratingFilterMin = value
       db.ratingFilter = value > 0
       LFMPlus:RefreshResults()
@@ -1544,18 +1532,18 @@ local InitializeUI =
       end
     )
 
-    f.scoreMinFrame:SetValueStep(100)
-    f.scoreMinFrame:SetObeyStepOnDrag(false)
+    f.scoreMinFrame:SetScript("OnMouseWheel",function(self,delta)
+      local newValue  = (self:GetValue() + delta * 100)
+      if((self:GetValue() ~= newValue) and (newValue >= ns.constants.ratingMin and newValue <= ns.constants.ratingMax))then
+        self:SetDisplayValue(newValue >= 0 and newValue or 0)
+      end
+    end)
+
     f.scoreMinFrame:SetSize(125, 15)
-
-    f.scoreMinFrame.Value = f.scoreMinFrame.Text
-    f.scoreMinFrame.Value:ClearAllPoints()
-    f.scoreMinFrame.Value:SetPoint("TOP", f.scoreMinFrame, "BOTTOM", 0, 3)
-
     f.scoreMinFrame:SetMinMaxValues(ns.constants.ratingMin, ns.constants.ratingMax)
-    f.scoreMinFrame:SetDisplayValue(db.ratingFilterMin)
-    f.scoreMinFrame.Low:SetText(LFMPlus:formatMPlusRating(ns.constants.ratingMin))
-    f.scoreMinFrame.High:SetText(LFMPlus:formatMPlusRating(ns.constants.ratingMax))
+    f.scoreMinFrame:SetObeyStepOnDrag(true)
+    f.scoreMinFrame:SetValueStep(100)
+    f.scoreMinFrame:SetDisplayValue(0)
 
     f.frames.search["scoreMinFrame"] = true
     f.frames.app["scoreMinFrame"] = true
@@ -1959,7 +1947,7 @@ local options = {
         showLeaderScoreDesc = {
           type = "description",
           width = "full",
-          name = "         " .. LFMPlus:formatMPlusRating(2200) .. " " .. NORMAL_FONT_COLOR:WrapTextInColorCode("19 PF LUST"),
+          name = "         " .. LFMPlus:formatMPlusRating(2200, true, true) .. " " .. NORMAL_FONT_COLOR:WrapTextInColorCode("19 PF LUST"),
           fontSize = "medium",
           order = 11
         },

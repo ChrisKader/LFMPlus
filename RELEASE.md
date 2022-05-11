@@ -1,4 +1,5 @@
-**[1.5.8](https://github.com/ChrisKader/LFMPlus/releases/tag/v1.5.5)**
+**[1.5.9](https://github.com/ChrisKader/LFMPlus/releases/tag/v1.5.5)**
   * [Full Changelog](https://github.com/ChrisKader/LFMPlus/blob/main/CHANGELOG.md)
-  * Moved FixGetPlayStyleString to its own function.
+  * Swapped to using [`LFMPlus.xml`](https://github.com/ChrisKader/LFMPlus/blob/main/LFMPlus.xml) for loading scripts and libraries.
+  * Update Slider logic with custom template that allows for using the mouse wheel to change value.
   
