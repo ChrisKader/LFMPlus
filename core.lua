@@ -65,10 +65,6 @@ C_LFGList.GetPlaystyleString = function(playstyle,activityInfo)
   return LFMPlus_GetPlaystyleString(playstyle, activityInfo)
 end
 
---Protected func, not completable with addons. No name when creating activity without authenticator now.
-function LFGListEntryCreation_SetTitleFromActivityInfo(_)
-end
-
 local defaults = {
   global = {
     -- Control Panel Defaults
@@ -2314,6 +2310,43 @@ function LFMPlus:HookScripts()
     if PVEFrame:IsShown() then
       PVEFrame:Hide()
     end
+    -- Copy/Pasta from https://github.com/0xbs/premade-groups-filter/blob/master/FixGetPlaystyleString.lua
+    -- By overwriting C_LFGList.GetPlaystyleString, we taint the code writing the tooltip (which does not matter),
+    -- and also code related to the dropdows where you can select the playstyle. The only relevant protected function
+    -- here is C_LFGList.SetEntryTitle, which is only called from LFGListEntryCreation_SetTitleFromActivityInfo.
+    -- Players that do not have an authenticator attached to their account cannot set the title or comment when creating
+    -- groups. Instead, Blizzard sets the title programmatically. If we taint this function, these players can not create
+    -- groups anymore, so we check on an arbitrary mythic plus dungeon if the player is authenticated to create a group.
+    local activityIdOfArbitraryMythicPlusDungeon = 703 -- Mists of Tirna Scithe
+    if not C_LFGList.IsPlayerAuthenticatedForLFG(activityIdOfArbitraryMythicPlusDungeon) then
+        print("LFM+: Will not apply fix for 'Interface action failed because of an AddOn' errors because you don't seem to have a fully secured account and otherwise can't create premade groups. See addon FAQ for more information and how to fix this issue.")
+        return
+    end
+
+    -- Overwrite C_LFGList.GetPlaystyleString with a custom implementation because the original function is
+    -- hardware protected, causing an error when a group tooltip is shown as we modify the search result list.
+    -- Original code from https://github.com/ChrisKader/LFMPlus/blob/36bca68720c724bf26cdf739614d99589edb8f77/core.lua#L38
+    -- but sligthly modified.
+    C_LFGList.GetPlaystyleString = function(playstyle, activityInfo)
+        if not ( activityInfo and playstyle and playstyle ~= 0
+                and C_LFGList.GetLfgCategoryInfo(activityInfo.categoryID).showPlaystyleDropdown ) then
+            return nil
+        end
+        local globalStringPrefix
+        if activityInfo.isMythicPlusActivity then
+            globalStringPrefix = "GROUP_FINDER_PVE_PLAYSTYLE"
+        elseif activityInfo.isRatedPvpActivity then
+            globalStringPrefix = "GROUP_FINDER_PVP_PLAYSTYLE"
+        elseif activityInfo.isCurrentRaidActivity then
+            globalStringPrefix = "GROUP_FINDER_PVE_RAID_PLAYSTYLE"
+        elseif activityInfo.isMythicActivity then
+            globalStringPrefix = "GROUP_FINDER_PVE_MYTHICZERO_PLAYSTYLE"
+        end
+        return globalStringPrefix and _G[globalStringPrefix .. tostring(playstyle)] or nil
+    end
+
+    -- Disable automatic group titles to prevent tainting errors
+    LFGListEntryCreation_SetTitleFromActivityInfo = function(_) end
     LFMPlus:HookScript(
       PVEFrame,
       "OnShow",
