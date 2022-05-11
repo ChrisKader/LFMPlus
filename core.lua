@@ -10,7 +10,7 @@ local db
 
 local LibDD = LibStub:GetLibrary("LibUIDropDownMenu-4.0")
 
----@type LFMPlus
+---@class LFMPlus
 local LFMPlus = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
 
 ---@class LFMPlusFrame:Frame
@@ -329,6 +329,7 @@ ns.DebugLog = function(text,type)
     else
       message = message
     end
+    ---@class DLAPI
     if DLAPI then DLAPI.DebugLog("LFM+", text) end
     print(messagePrefix .. message)
   end
@@ -566,6 +567,7 @@ function LFMPlus:SearchEntry_OnEnter(s)
   if info.leaderName then
     GameTooltip:AddLine(string.format(LFG_LIST_TOOLTIP_LEADER, info.leaderName))
     -- load raider.io info if present
+    ---@type RaiderIO
     if RaiderIO then
       playerProfile = RaiderIO.GetProfile("player")
       leaderProfile = nil
@@ -1755,20 +1757,6 @@ local InitializeUI =
               end
             end
           end
-        end
-
-        -- Disable timewalking.
-        for k,v in pairs(ns.constants.timewalk) do
-          local fullName, _, _, _, _, _, _, _, _, _, _, _, isMythicPlus, _, _ = C_LFGList.GetActivityInfo(k)
-          --[[ LFMPlusFrame.dungeonList[k] = {
-            id = k,
-            name = v.shortName,
-            longName = fullName,
-            challMapID = nil,
-            texture = nil,
-            backgroundTexture = nil,
-            checked = false,
-          } ]]
         end
 
         LFMPlusFrame.dungeonListLoaded = true

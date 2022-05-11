@@ -22,12 +22,12 @@ manual-changelog:
 
 ignore:
   - 3rd
-  - DevReadme.md
-  - logo.jpg
   - screenshots
   - bin
   - libs/LibUIDropDownMenu/Docs
   - libs/LibUIDropDownMenu/!LibUIDropDownMenu.toc
+  - CONTRIBUTING.md
+  - CHANGELOG.md
 
 move-folders:
   LFMPlus/libs/LibUIDropDownMenu/LibUIDropDownMenu: LFMPlus/libs/LibUIDropDownMenu
