@@ -2301,12 +2301,7 @@ function LFMPlus:OnInitialize()
     ns.Init = true
   end
 end
-
-function LFMPlus:HookScripts()
-  if not ns.FrameHooksRan then
-    if PVEFrame:IsShown() then
-      PVEFrame:Hide()
-    end
+function FixGetPlayStyleString()
     -- Copy/Pasta from https://github.com/0xbs/premade-groups-filter/blob/master/FixGetPlaystyleString.lua
     -- By overwriting C_LFGList.GetPlaystyleString, we taint the code writing the tooltip (which does not matter),
     -- and also code related to the dropdows where you can select the playstyle. The only relevant protected function
@@ -2344,6 +2339,13 @@ function LFMPlus:HookScripts()
 
     -- Disable automatic group titles to prevent tainting errors
     LFGListEntryCreation_SetTitleFromActivityInfo = function(_) end
+end
+function LFMPlus:HookScripts()
+  if not ns.FrameHooksRan then
+    if PVEFrame:IsShown() then
+      PVEFrame:Hide()
+    end
+    FixGetPlayStyleString()
     LFMPlus:HookScript(
       PVEFrame,
       "OnShow",
