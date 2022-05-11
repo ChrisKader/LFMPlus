@@ -2315,7 +2315,7 @@ function LFMPlus:HookScripts()
     -- groups. Instead, Blizzard sets the title programmatically. If we taint this function, these players can not create
     -- groups anymore, so we check on an arbitrary mythic plus dungeon if the player is authenticated to create a group.
     local activityIdOfArbitraryMythicPlusDungeon = 703 -- Mists of Tirna Scithe
-    if C_LFGList.IsPlayerAuthenticatedForLFG(activityIdOfArbitraryMythicPlusDungeon) then
+    if not C_LFGList.IsPlayerAuthenticatedForLFG(activityIdOfArbitraryMythicPlusDungeon) then
         print("LFM+: Will not apply fix for 'Interface action failed because of an AddOn' errors because you don't seem to have a fully secured account and otherwise can't create premade groups. See addon FAQ for more information and how to fix this issue.")
         return
     end
