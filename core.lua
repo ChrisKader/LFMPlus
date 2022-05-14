@@ -42,7 +42,7 @@ local COLOR_RESET = "|r"
 local COLOR_GRAY = "|cffbbbbbb"
 local COLOR_ORANGE = "|cffffaa66"
 
-function LFMPlus_GetPlaystyleString(playstyle,activityInfo)
+--[[ function LFMPlus_GetPlaystyleString(playstyle,activityInfo)
   if activityInfo and playstyle ~= (0 or nil) and C_LFGList.GetLfgCategoryInfo(activityInfo.categoryID).showPlaystyleDropdown then
     local typeStr
     if activityInfo.isMythicPlusActivity then
@@ -58,7 +58,7 @@ function LFMPlus_GetPlaystyleString(playstyle,activityInfo)
   else
     return nil
   end
-end
+end ]]
 
 --There is no reason to do this api func protected, but they do.
 
@@ -136,7 +136,7 @@ end
 ---@param short boolean?
 ---@param colored boolean?
 function LFMPlus:formatMPlusRating(rating, short, colored)
-  rating = type(rating) =="number" and rating or tonumber(rating or "0")
+  rating = type(rating) == "number" and rating or tonumber(rating or "0")
   local returnString = tostring(rating)
 
   if short then
@@ -383,7 +383,7 @@ function LFMPlus:GetTooltipInfo(resultID)
     return nil
   end
   local numMembers = searchResultInfo.numMembers
-  local playStyle = searchResultInfo.playstyle
+  local playStyle = 0--searchResultInfo.playstyle
   local numBNetFriends = searchResultInfo.numBNetFriends
   local numCharFriends = searchResultInfo.numCharFriends
   local numGuildMates = searchResultInfo.numGuildMates
@@ -461,7 +461,7 @@ function LFMPlus:GetTooltipInfo(resultID)
     displayType = activityInfo.displayType,
     isMythicPlusActivity = activityInfo.isMythicPlusActivity,
     isRatedPvpActivity = activityInfo.isRatedPvpActivity,
-    playstyleString = LFMPlus_GetPlaystyleString(playStyle, activityInfo)
+    playstyleString = "Standard" --C_LFGList.GetPlaystyleString(playStyle, activityInfo)
   }
 end
 
@@ -1258,31 +1258,7 @@ function LFGListUtil_SortSearchResultsCB(id1,id2)
       return false
     end
   end
-  --Not used
-  --[[ 	local sr_id1 = searchResultInfo1.searchResultID
-  local sr_id2 = searchResultInfo2.searchResultID
-  local activityID1 = searchResultInfo1.activityID
-  local activityID2 = searchResultInfo2.activityID
-  local leaderName1 = searchResultInfo1.leaderName
-  local leaderName2 = searchResultInfo2.leaderName
-  local name1 = searchResultInfo1.name
-  local name2 = searchResultInfo2.name
-  local comment1 = searchResultInfo1.comment
-  local comment2 = searchResultInfo2.comment
-  local iLvl1 = searchResultInfo1.requiredItemLevel
-  local iLvl2 = searchResultInfo2.requiredItemLevel
-  local honorLevel1 = searchResultInfo1.requiredHonorLevel
-  local honorLevel2 = searchResultInfo2.requiredHonorLevel
-  local voiceChat1 = searchResultInfo1.voiceChat
-  local voiceChat2 = searchResultInfo2.voiceChat
-  local numFriends1 = searchResultInfo1.numMembers
-  local numFriends2 = searchResultInfo2.numMembers
-  local questID1 = searchResultInfo1.questID
-  local questID2 = searchResultInfo2.questID
-  local autoAccept1 = searchResultInfo1.autoAccept
-  local autoAccept2 = searchResultInfo2.autoAccept
-  local isDelisted1 = searchResultInfo1.isDelisted
-  local isDelisted2 = searchResultInfo2.isDelisted ]]
+
   local leaderOverallDungeonScore1 = searchResultInfo1.leaderOverallDungeonScore or 0
   local leaderOverallDungeonScore2 = searchResultInfo2.leaderOverallDungeonScore or 0
   if LFGListFrame.CategorySelection.selectedCategory == 2 then
@@ -2333,7 +2309,7 @@ function LFMPlus:HookScripts()
     if PVEFrame:IsShown() then
       PVEFrame:Hide()
     end
-    FixGetPlayStyleString()
+    --FixGetPlayStyleString()
     LFMPlus:HookScript(
       PVEFrame,
       "OnShow",
