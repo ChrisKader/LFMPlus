@@ -1,6 +1,5 @@
-local _,
----@class ns
-ns= ...
+local _, ---@class ns
+ns = ...
 
 ---@class ns.constants
 ns.constants = {
@@ -19,38 +18,50 @@ ns.constants = {
     NA = "communities-icon-redx"
   },
   declineQueueMax = 15,
-  lengths = {name = "%-12s", server = "%-15s", score = "%-4s"},
+  lengths = { name = "%-12s", server = "%-15s", score = "%-4s" },
   dungeons = {
-    ["PF"] = {cmID = 379, aID = 691},
-    ["DOS"] = {cmID = 377, aID = 695},
-    ["HOA"] = {cmID = 378, aID = 699},
-    ["MISTS"] = {cmID = 375, aID = 703},
-    ["SD"] = {cmID = 380, aID = 705},
-    ["SOA"] = {cmID = 381, aID = 709},
-    ["NW"] = {cmID = 376, aID = 713},
-    ["TOP"] = {cmID = 382, aID = 717},
-    ["STRT"] = {cmID = 391, aID = 1016},
-    ["GMBT"] = {cmID = 392, aID = 1017}
+    ["PF"] = { cmID = 379, aID = 691 },
+    ["DOS"] = { cmID = 377, aID = 695 },
+    ["HOA"] = { cmID = 378, aID = 699 },
+    ["MISTS"] = { cmID = 375, aID = 703 },
+    ["SD"] = { cmID = 380, aID = 705 },
+    ["SOA"] = { cmID = 381, aID = 709 },
+    ["NW"] = { cmID = 376, aID = 713 },
+    ["TOP"] = { cmID = 382, aID = 717 },
+    ["STRT"] = { cmID = 391, aID = 1016 },
+    ["GMBT"] = { cmID = 392, aID = 1017 },
+    ["WKSHP"] = { cmID = 370, aID = 683 },
+    ["DOCK"] = { cmID = 169, aID = 180 },
+    ["GRIM"] = { cmID = 166, aID = 183 },
+    ["LOWR"] = { cmID = 227, aID = 471 },
+    ["JUNK"] = { cmID = 369, aID = 679 },
+    ["UPPR"] = { cmID = 234, aID = 473 },
   },
   timewalk = {
-    [459] = {shortName = "EOA"},
-    [460] = {shortName = "DHT"},
-    [462] = {shortName = "NL"},
-    [464] = {shortName = "VOTW"},
-    [463] = {shortName = "BRH"},
-    [466] = {shortName = "COS"},
+    [459] = { shortName = "EOA" },
+    [460] = { shortName = "DHT" },
+    [462] = { shortName = "NL" },
+    [464] = { shortName = "VOTW" },
+    [463] = { shortName = "BRH" },
+    [466] = { shortName = "COS" },
   },
   mapInfo = {
-    [379] = {shortName = "PF", activityId = 691},
-    [377] = {shortName = "DOS", activityId = 695},
-    [378] = {shortName = "HOA", activityId = 699},
-    [375] = {shortName = "MISTS", activityId = 703},
-    [380] = {shortName = "SD", activityId = 705},
-    [381] = {shortName = "SOA", activityId = 709},
-    [376] = {shortName = "NW", activityId = 713},
-    [382] = {shortName = "TOP", activityId = 717},
-    [391] = {shortName = "STRT", activityId = 1016},
-    [392] = {shortName = "GMBT", activityId = 1017}
+    [379] = { shortName = "PF", activityId = 691 },
+    [377] = { shortName = "DOS", activityId = 695 },
+    [378] = { shortName = "HOA", activityId = 699 },
+    [375] = { shortName = "MISTS", activityId = 703 },
+    [380] = { shortName = "SD", activityId = 705 },
+    [381] = { shortName = "SOA", activityId = 709 },
+    [376] = { shortName = "NW", activityId = 713 },
+    [382] = { shortName = "TOP", activityId = 717 },
+    [391] = { shortName = "STRT", activityId = 1016 },
+    [392] = { shortName = "GMBT", activityId = 1017 },
+    [370] = { shortName = "WKSHP", activityId = 683 },
+    [169] = { shortName = "DOCK", activityId = 180 },
+    [166] = { shortName = "GRIM", activityId = 183 },
+    [227] = { shortName = "LOWR", activityId = 471 },
+    [369] = { shortName = "JUNK", activityId = 679 },
+    [234] = { shortName = "UPPR", activityId = 473 },
   },
   trackedEvents = {
     ["LFG_LIST_AVAILABILITY_UPDATE"] = false,
@@ -69,10 +80,9 @@ ns.constants = {
     ["PARTY_LEADER_CHANGED"] = true,
     ["GROUP_ROSTER_UPDATE"] = true
   },
-  searchEntryFrames = {"classDot", "roleIcon", "classBar"},
+  searchEntryFrames = { "classDot", "roleIcon", "classBar" },
   ---@class ns.constants.defaults
   defaults = {
-    ---@class ns.constants.defaults.global
     global = {
       -- Control Panel Defaults
       enabled = true,
@@ -137,10 +147,10 @@ ns.constants.actvityInfo = {
   [464] = ns.constants.timewalk[464],
   [463] = ns.constants.timewalk[463],
   [466] = ns.constants.timewalk[466],
+  [683] = ns.constants.mapInfo[370],
+  [180] = ns.constants.mapInfo[169],
+  [183] = ns.constants.mapInfo[166],
+  [471] = ns.constants.mapInfo[227],
+  [679] = ns.constants.mapInfo[369],
+  [473] = ns.constants.mapInfo[234],
 }
-
-
-
-
-
-

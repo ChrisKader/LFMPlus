@@ -461,6 +461,7 @@ function LFMPlus:GetTooltipInfo(resultID)
     displayType = activityInfo.displayType,
     isMythicPlusActivity = activityInfo.isMythicPlusActivity,
     isRatedPvpActivity = activityInfo.isRatedPvpActivity,
+    crossFactionListing = searchResultInfo.crossFactionListing,
     playstyleString = "Standard" --C_LFGList.GetPlaystyleString(playStyle, activityInfo)
   }
 end
@@ -1702,21 +1703,24 @@ local InitializeUI =
             }
           )
         end
+        local dungeonListLength = 0
         for _, activityID in pairs(activityIDs) do
-          local fullName, _, _, _, _, _, _, _, _, _, _, _, isMythicPlus, _, _ = C_LFGList.GetActivityInfo(activityID)
-          if isMythicPlus then
+          local activityInfoTable = C_LFGList.GetActivityInfoTable(activityID)
+          print(activityID,activityInfoTable.isMythicPlusActivity);
+          if activityInfoTable.isMythicPlusActivity then
             for _, challMap in pairs(mapChallengeModeInfo) do
-              if ns.constants.mapInfo[challMap.challMapID].activityId == activityID then
+              if ns.constants.mapInfo[challMap.challMapID] and ns.constants.mapInfo[challMap.challMapID].activityId == activityID then
                 local dungeon = challMap
                 dungeon.id = activityID
-                dungeon.name = ns.constants.actvityInfo[activityID].shortName or fullName
+                dungeon.name = ns.constants.actvityInfo[activityID].shortName or activityInfoTable.fullName
                 LFMPlusFrame.dungeonList[activityID] = dungeon
+                dungeonListLength = dungeonListLength + 1
               end
             end
           end
         end
 
-        LFMPlusFrame.dungeonListLoaded = true
+        LFMPlusFrame.dungeonListLoaded = dungeonListLength > 1
       end
       local activeList = LFMPlus.mPlusSearch and LFMPlusFrame.dungeonList or LFMPlusFrame.classList
       local info = LibDD:UIDropDownMenu_CreateInfo()
@@ -2249,7 +2253,7 @@ function LFMPlus:OnInitialize()
   db = LibStub("AceDB-3.0"):New(ns.constants.friendlyName .. "DB", ns.constants.defaults, true).global
 
   -- Register options table and slash command
-  LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable(addonName, options, true)
+  LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable(addonName, options, false)
   self:RegisterChatCommand(
     "lfm",
     function()
@@ -2260,10 +2264,8 @@ function LFMPlus:OnInitialize()
   LibStub("AceConfigDialog-3.0"):AddToBlizOptions(addonName, addonName)
   InitializeUI()
 
-  if db.enabled then
-    LFMPlus:Enable()
-    ns.Init = true
-  end
+  LFMPlus:Enable()
+  ns.Init = true
 end
 function FixGetPlayStyleString()
     -- Copy/Pasta from https://github.com/0xbs/premade-groups-filter/blob/master/FixGetPlaystyleString.lua
