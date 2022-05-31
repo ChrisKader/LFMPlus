@@ -1706,7 +1706,6 @@ local InitializeUI =
         local dungeonListLength = 0
         for _, activityID in pairs(activityIDs) do
           local activityInfoTable = C_LFGList.GetActivityInfoTable(activityID)
-          print(activityID,activityInfoTable.isMythicPlusActivity);
           if activityInfoTable.isMythicPlusActivity then
             for _, challMap in pairs(mapChallengeModeInfo) do
               if ns.constants.mapInfo[challMap.challMapID] and ns.constants.mapInfo[challMap.challMapID].activityId == activityID then
