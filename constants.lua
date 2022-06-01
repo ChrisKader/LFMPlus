@@ -59,9 +59,9 @@ ns.constants = {
     [370] = { shortName = "WKSHP", activityId = 683 },
     [169] = { shortName = "DOCK", activityId = 180 },
     [166] = { shortName = "GRIM", activityId = 183 },
-    [227] = { shortName = "LOWR", activityId = 473 },
+    [227] = { shortName = "UPPR", activityId = 473 },
     [369] = { shortName = "JUNK", activityId = 679 },
-    [234] = { shortName = "UPPR", activityId = 471 },
+    [234] = { shortName = "LOWR", activityId = 471 },
   },
   trackedEvents = {
     ["LFG_LIST_AVAILABILITY_UPDATE"] = false,
