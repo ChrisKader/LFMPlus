@@ -6,7 +6,7 @@ local addonName,
   ns = ...
 
 ---@type ns.constants.defaults.global
-
+local FACTION_STRINGS = { [0] = FACTION_HORDE, [1] = FACTION_ALLIANCE};
 local LibDD = LibStub:GetLibrary("LibUIDropDownMenu-4.0")
 
 ---@class LFMPlus
@@ -472,6 +472,7 @@ function LFMPlus:GetTooltipInfo(resultID)
     isMythicPlusActivity = activityInfo.isMythicPlusActivity,
     isRatedPvpActivity = activityInfo.isRatedPvpActivity,
     crossFactionListing = searchResultInfo.crossFactionListing,
+    leaderFactionGroup = searchResultInfo.leaderFactionGroup,
     playstyleString = "Standard" --C_LFGList.GetPlaystyleString(playStyle, activityInfo)
   }
 end
@@ -584,6 +585,7 @@ function LFMPlus:SearchEntry_OnEnter(s)
       end
     end
   end
+  GameTooltip:AddLine((info.crossFactionListing and GREEN_FONT_COLOR:WrapTextInColorCode("Cross-Faction") or RED_FONT_COLOR:WrapTextInColorCode("Cross-Faction")) .. "/" .. FACTION_STRINGS[info.leaderFactionGroup])
   if info.isRatedPvpActivity and info.leaderPvpRatingInfo then
     GameTooltip_AddNormalLine(GameTooltip, PVP_RATING_GROUP_FINDER:format(info.leaderPvpRatingInfo.activityName, info.leaderPvpRatingInfo.rating, PVPUtil.GetTierName(info.leaderPvpRatingInfo.tier)))
   elseif info.isMythicPlusActivity and info.leaderOverallDungeonScore then
@@ -711,6 +713,22 @@ function LFGListSearchEntry_Update(self)
   self.CancelButton.Icon:SetDesaturated(not LFGListUtil_IsAppEmpowered())
   self.CancelButton.tooltip = (not LFGListUtil_IsAppEmpowered()) and LFG_LIST_APP_UNEMPOWERED
   self.Spinner:SetShown(pendingStatus == "applied")
+  local thisIndicator = self.indicator
+
+  if (not thisIndicator) then
+    local newIndicator = self:CreateTexture (nil, "overlay")
+    newIndicator:SetDrawLayer("OVERLAY", 7)
+    newIndicator:SetSize (10, 10)
+    self.indicator = newIndicator
+    thisIndicator = newIndicator
+  end
+
+  thisIndicator:Show()
+  thisIndicator:SetTexCoord (0, 1, 0, 1)
+  thisIndicator:SetVertexColor (1, 1, 1)
+  thisIndicator:SetDesaturated (false)
+  thisIndicator:SetSize (12, 12)
+  thisIndicator:SetScale (1)
 
   if pendingStatus == "applied" and C_LFGList.GetRoleCheckInfo() then
     self.PendingLabel:SetText(LFG_LIST_ROLE_CHECK)
@@ -786,6 +804,14 @@ function LFGListSearchEntry_Update(self)
   local panel = self:GetParent():GetParent():GetParent()
 
   local searchResultInfo = C_LFGList.GetSearchResultInfo(resultID)
+  thisIndicator:Hide()
+  if UnitFactionGroup("player") ~= PLAYER_FACTION_GROUP[searchResultInfo.leaderFactionGroup] then
+    local factionString = FACTION_STRINGS[searchResultInfo.leaderFactionGroup];
+    thisIndicator:SetTexture ([[Interface\PVPFrame\PVP-Currency-]] .. factionString)
+    thisIndicator:SetPoint("LEFT",self.Name,"RIGHT")
+    thisIndicator:Show()
+  end
+
   local activityID = searchResultInfo.activityID
   local name = searchResultInfo.name
   local voiceChat = searchResultInfo.voiceChat
@@ -1045,6 +1071,9 @@ function LFGListSearchEntry_Update(self)
           realmName = BATTLENET_FONT_COLOR:WrapTextInColorCode(GetRealmName())
         end
         if realmName then
+          local activityName = self.ActivityName:GetText() .. " " .. realmName
+          thisIndicator:SetTexture ([[Interface\PVPFrame\PVP-Currency-Alliance]])
+          thisIndicator:SetTexCoord (4/32, 29/32, 2/32, 30/32)
           self.ActivityName:SetText(self.ActivityName:GetText() .. " " .. realmName)
           self.ActivityName:SetWordWrap(false)
         end
