@@ -6,13 +6,22 @@ local addonName,
   ns = ...
 
 ---@type ns.constants.defaults.global
-local db
 
 local LibDD = LibStub:GetLibrary("LibUIDropDownMenu-4.0")
 
 ---@class LFMPlus
 local LFMPlus = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
 
+function LFMPlus.Table_UpdateWithDefaults(table, defaults)
+    for k, v in pairs(defaults) do
+        if type(v) == "table" then
+            if table[k] == nil then table[k] = {} end
+            LFMPlus.Table_UpdateWithDefaults(table[k], v)
+        else
+            if table[k] == nil then table[k] = v end
+        end
+    end
+end
 ---@class LFMPlusFrame:Frame
 ---@field Layout function Layout child in the frame.
 local LFMPlusFrame = CreateFrame("Frame", "LFMPlusFrame", GroupFinderFrame, "ManagedHorizontalLayoutFrameTemplate")
@@ -33,8 +42,6 @@ LFMPlusFrame.results = {}
 LFMPlusFrame.selectedResult = nil
 LFMPlusFrame.spacing = 5
 LFMPlusFrame.totalResults = 0
-
-LFMPlusFrame:RegisterEvent("ADDON_LOADED")
 
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, false)
 
@@ -136,18 +143,18 @@ end
 ---@param short boolean?
 ---@param colored boolean?
 function LFMPlus:formatMPlusRating(rating, short, colored)
-  rating = type(rating) == "number" and rating or tonumber(rating or "0")
-  local returnString = tostring(rating)
+  rating = type(rating) == "number" and rating or 0
+  local returnString = tostring(rating) or "0"
 
   if short then
-    returnString = string.format(rating >= 1000 and "%.2f%s" or "%.0f%s", rating >= 1000 and rating / 1000 or rating, rating >= 1000 and "k" or "")
+    returnString = string.format(rating >= 1000 and "%.2f%s" or "%.0f%s", rating >= 1000 and rating / 1000 or rating, rating >= 1000 and "k" or "") or returnString
   end
 
   if colored then
-    returnString = C_ChallengeMode.GetDungeonScoreRarityColor(rating):WrapTextInColorCode(returnString)
+    returnString = C_ChallengeMode.GetDungeonScoreRarityColor(rating or 0):WrapTextInColorCode(returnString)
   end
 
-  return returnString
+  return returnString or "0"
 end
 
 function LFMPlus:RemoveApplicantId(id)
@@ -217,9 +224,9 @@ function LFMPlus:filterTable(results,idsToFilter)
 end
 
 function LFMPlus:checkRealm(realm)
-  local rtnVal = db.flagRealmList[realm] or false
+  local rtnVal = LFMPDB.global.flagRealmList[realm] or false
   if realm then
-    if db.excludeRealmList then
+    if LFMPDB.global.excludeRealmList then
       return rtnVal
     else
       return not rtnVal
@@ -228,9 +235,9 @@ function LFMPlus:checkRealm(realm)
 end
 
 function LFMPlus:checkPlayer(player)
-  local rtnVal = db.flagPlayerList[player] or false
+  local rtnVal = LFMPDB.global.flagPlayerList[player] or false
   if player then
-    if db.excludePlayerList then
+    if LFMPDB.global.excludePlayerList then
       return rtnVal
     else
       return not rtnVal
@@ -256,8 +263,8 @@ function LFMPlus:DeclineButtonTooltip()
 end
 
 function LFMPlus:AddToFilter(name,realm)
-  if not db.flagPlayerList[name .. "-" .. realm] then
-    db.flagPlayerList[name .. "-" .. realm] = true
+  if not LFMPDB.global.flagPlayerList[name .. "-" .. realm] then
+    LFMPDB.global.flagPlayerList[name .. "-" .. realm] = true
   end
 end
 
@@ -848,7 +855,7 @@ function LFGListSearchEntry_Update(self)
     end
   end
 
-  if db.enabled and (activityInfo.isMythicPlusActivity or activityInfo.displayType == Enum.LfgListDisplayType.RoleEnumerate) then
+  if LFMPDB.global.enabled and (activityInfo.isMythicPlusActivity or activityInfo.displayType == Enum.LfgListDisplayType.RoleEnumerate) then
     local playstyleString = GREEN_FONT_COLOR:WrapTextInColorCode(ns.constants.playStyleString[searchResultInfo.playstyle] or "")
     local numMembers = searchResultInfo.numMembers
     local orderIndexes = {}
@@ -907,7 +914,7 @@ function LFGListSearchEntry_Update(self)
 
       -- dot - Displays a sphere colored to the class behind a smaller role icon in the same position as the default UI.
       -- icon - Displays an icon for the class in the same position as the default UI with a small role (if tank or healer) attached to the bottom of the icon.
-      if db.classRoleDisplay == "dot" or db.classRoleDisplay == "icon" then
+      if LFMPDB.global.classRoleDisplay == "dot" or LFMPDB.global.classRoleDisplay == "icon" then
         -- Create and configure the frame needed.
 
         if not iconFrame.classDot then
@@ -935,18 +942,18 @@ function LFGListSearchEntry_Update(self)
 
         iconFrame.roleIcon:SetAtlas("roleicon-tiny-" .. string.lower(roleName))
 
-        if db.classRoleDisplay == "dot" then
+        if LFMPDB.global.classRoleDisplay == "dot" then
           iconFrame:Hide()
           iconFrame.classDot.tex:SetVertexColor(r, g, b, 1)
           iconFrame.classDot:Show()
           iconFrame.roleIcon:SetPoint("TOP", iconFrame, "CENTER", 0, 5)
-        elseif db.classRoleDisplay == "icon" then
+        elseif LFMPDB.global.classRoleDisplay == "icon" then
           iconFrame.roleIcon:SetPoint("TOP", iconFrame, "CENTER", -1, -3)
           iconFrame:SetAtlas("groupfinder-icon-class-" .. string.lower(class))
         end
 
         iconFrame.roleIcon:Show()
-      elseif db.classRoleDisplay == "bar" then
+      elseif LFMPDB.global.classRoleDisplay == "bar" then
         -- Ensure the display is set to default settings.
         if not iconFrame.classBar then
           ---@type Texture
@@ -958,7 +965,7 @@ function LFGListSearchEntry_Update(self)
         end
         iconFrame.classBar:SetColorTexture(r, g, b, 1)
         iconFrame.classBar:Show()
-      elseif db.classRoleDisplay == "def" then
+      elseif LFMPDB.global.classRoleDisplay == "def" then
         iconFrame:SetSize(18, 18)
         for _, v in ipairs(ns.constants.searchEntryFrames) do
           if iconFrame[v] then
@@ -968,7 +975,7 @@ function LFGListSearchEntry_Update(self)
       end
 
       -- Displays a crown attached to the top of the leaders role icon.
-      if db.showPartyLeader == true then
+      if LFMPDB.global.showPartyLeader == true then
         if not dataDisplayEnum.leader then
           local f = dataDisplayEnum:CreateTexture(dataDisplayEnum["LeaderIcon"], "OVERLAY")
           f:SetSize(10, 5)
@@ -1003,7 +1010,7 @@ function LFGListSearchEntry_Update(self)
       end
     end
 
-    if db.alwaysShowRoles then
+    if LFMPDB.global.alwaysShowRoles then
       self.DataDisplay:ClearAllPoints()
       self.DataDisplay:SetPoint("BOTTOMRIGHT", self.CancelButton, "BOTTOMLEFT", 5, -5)
       if not self.DataDisplay:IsShown() then
@@ -1011,22 +1018,22 @@ function LFGListSearchEntry_Update(self)
       end
     end
 
-    if db.showLeaderScore and not searchResultInfo.isDelisted and LFMPlusFrame.dungeonList[searchResultInfo.activityID] then
+    if LFMPDB.global.showLeaderScore and not searchResultInfo.isDelisted and LFMPlusFrame.dungeonList[searchResultInfo.activityID] then
       local formattedLeaderScore = LFMPlus:formatMPlusRating(searchResultInfo.leaderOverallDungeonScore or 0, true, true)
       self.Name:SetText(formattedLeaderScore .. " " .. self.Name:GetText())
       self.ActivityName:SetWordWrap(false)
     end
 
-    if db.shortenActivityName and ns.constants.actvityInfo[searchResultInfo.activityID] then
+    if LFMPDB.global.shortenActivityName and ns.constants.actvityInfo[searchResultInfo.activityID] then
       self.ActivityName:SetText(ns.constants.actvityInfo[searchResultInfo.activityID].shortName .. " (M+)")
       self.ActivityName:SetWordWrap(false)
     end
 
-    if db.showRealmName and LFMPlusFrame.dungeonList[searchResultInfo.activityID] then
+    if LFMPDB.global.showRealmName and LFMPlusFrame.dungeonList[searchResultInfo.activityID] then
       local leaderName, realmName = LFMPlus:GetNameRealm(searchResultInfo.leaderName)
       if (leaderName) then
         if realmName then
-          if (db.flagRealm and LFMPlus:checkRealm(realmName)) or (db.flagPlayer and LFMPlus:checkPlayer(leaderName)) then
+          if (LFMPDB.global.flagRealm and LFMPlus:checkRealm(realmName)) or (LFMPDB.global.flagPlayer and LFMPlus:checkPlayer(leaderName)) then
             realmName = RED_FONT_COLOR:WrapTextInColorCode(realmName)
           else
             realmName = NORMAL_FONT_COLOR:WrapTextInColorCode(realmName)
@@ -1131,32 +1138,32 @@ function LFGListSearchPanel_UpdateResultList(self)
       end
 
       local matches = true
-      if db.enabled and LFGListFrame.CategorySelection.selectedCategory == 2 then
-        if matches and db.activeRoleFilter then
+      if LFMPDB.global.enabled and LFGListFrame.CategorySelection.selectedCategory == 2 then
+        if matches and LFMPDB.global.activeRoleFilter then
           matches = memberCounts[roleRemainingKeyLookup[playerRole]] > 0
         end
 
-        if matches and db.ratingFilter then
-          matches = ((searchResultInfo.leaderOverallDungeonScore or 0) >= db.ratingFilterMin)
+        if matches and LFMPDB.global.ratingFilter then
+          matches = ((searchResultInfo.leaderOverallDungeonScore or 0) >= LFMPDB.global.ratingFilterMin)
         end
 
-        if matches and db.filterRealm then
+        if matches and LFMPDB.global.filterRealm then
           matches = LFMPlus:checkRealm(realmName)
         end
 
-        if matches and db.filterPlayer then
+        if matches and LFMPDB.global.filterPlayer then
           matches = LFMPlus:checkPlayer(leaderName)
         end
 
-        if matches and db.dungeonFilter then
+        if matches and LFMPDB.global.dungeonFilter then
           matches = (LFMPlusFrame.dungeonList[searchResultInfo.activityID] and LFMPlusFrame.dungeonList[searchResultInfo.activityID].checked or false)
         end
 
-        if matches and db.ratingFilter then
+        if matches and LFMPDB.global.ratingFilter then
           matches = activityInfoTable.isMythicPlusActivity
         end
 
-        if not matches and db.alwaysShowFriends then
+        if not matches and LFMPDB.global.alwaysShowFriends then
           matches = friendsOrGuild > 0
         end
       end
@@ -1228,7 +1235,7 @@ function LFGListApplicationDialog_Show(self, resultID)
   local applicationNote = self.Description.EditBox:GetText()
 	LFGListApplicationDialog_UpdateRoles(self);
 	StaticPopupSpecial_Show(self);
-  if db.lfgListingDoubleClick and applicationNote ~= "" then
+  if LFMPDB.global.lfgListingDoubleClick and applicationNote ~= "" then
     if(IsShiftKeyDown()) then
       print("LFM+: Shift detected, skipping auto sign up.")
     else
@@ -1332,13 +1339,13 @@ function LFGListApplicationViewer_UpdateResultList(self)
       end
 
       if matches then
-        local classFoundInParty = not db.classFilter
-        local ratingFoundInParty = not db.ratingFilter
+        local classFoundInParty = not LFMPDB.global.classFilter
+        local ratingFoundInParty = not LFMPDB.global.ratingFilter
         for m = 1, applicantInfo.numMembers do
-          if db.classFilter and LFMPlusFrame.classList[groupInfo[m].mClass].checked then
+          if LFMPDB.global.classFilter and LFMPlusFrame.classList[groupInfo[m].mClass].checked then
             classFoundInParty = true
           end
-          if db.ratingFilter and groupInfo[m].mDungeonScore >= db.ratingFilterMin then
+          if LFMPDB.global.ratingFilter and groupInfo[m].mDungeonScore >= LFMPDB.global.ratingFilterMin then
             ratingFoundInParty = true
           end
         end
@@ -1486,8 +1493,9 @@ local InitializeUI =
       self.noclick = true
       self:SetValue(value)
       self.Text:SetText(LFMPlus:formatMPlusRating(value, true, true))
-      db.ratingFilterMin = value
-      db.ratingFilter = value > 0
+      self.Text:SetWidth(50)
+      LFMPDB.global.ratingFilterMin = value
+      LFMPDB.global.ratingFilter = value > 0
       LFMPlus:RefreshResults()
       self.noclick = false
     end
@@ -1556,7 +1564,7 @@ local InitializeUI =
     end
 
     function f:ToggleGlow()
-      if db.activeRoleFilter then
+      if LFMPDB.global.activeRoleFilter then
         f.roleIconGlow:Show()
       else
         f.roleIconGlow:Hide()
@@ -1583,7 +1591,7 @@ local InitializeUI =
       "OnMouseDown",
       function(self,button)
         if button == "LeftButton" then
-          db.activeRoleFilter = not db.activeRoleFilter
+          LFMPDB.global.activeRoleFilter = not LFMPDB.global.activeRoleFilter
           f.ToggleGlow()
           LFMPlus:RefreshResults()
         end
@@ -1633,8 +1641,8 @@ local InitializeUI =
         activeList[id].checked = not activeList[id].checked
         LibDD:UIDropDownMenu_SetSelectedValue(f, id)
       end
-      db.dungeonFilter = (LFMPlus.mPlusSearch and f:SelectedCount() > 0)
-      db.classFilter = (LFMPlus.mPlusListed and f:SelectedCount() > 0)
+      LFMPDB.global.dungeonFilter = (LFMPlus.mPlusSearch and f:SelectedCount() > 0)
+      LFMPDB.global.classFilter = (LFMPlus.mPlusListed and f:SelectedCount() > 0)
       LibDD:UIDropDownMenu_Refresh(f)
       f:SetCountText()
       LFMPlus:RefreshResults()
@@ -1654,7 +1662,7 @@ local InitializeUI =
             sName = name,
             checked = false
           }
-          db.classFilter = false
+          LFMPDB.global.classFilter = false
           LFMPlusFrame.classListLoaded = true
         end
       end
@@ -1783,8 +1791,8 @@ local InitializeUI =
     LibDD:UIDropDownMenu_SetSelectedValue(f, 0)
 
     f:Hide()
-    db.dungeonFilter = (LFMPlus.mPlusSearch and f:SelectedCount() > 0)
-    db.classFilter = (LFMPlus.mPlusListed and f:SelectedCount() > 0)
+    LFMPDB.global.dungeonFilter = (LFMPlus.mPlusSearch and f:SelectedCount() > 0)
+    LFMPDB.global.classFilter = (LFMPlus.mPlusListed and f:SelectedCount() > 0)
     LFMPlusFrame.DD = f
     LFMPlusFrame.frames.search["DD"] = true
     LFMPlusFrame.frames.app["DD"] = true
@@ -1852,7 +1860,7 @@ local InitializeUI =
 end
 
 local function ToggleFrames(frame,action)
-  if db.enabled and action == "show" then
+  if LFMPDB.global.enabled and action == "show" then
     LFMPlusFrame:Show()
     LFMPlusFrame.activeRoleFrame:UpdateRoleIcon()
 
@@ -1864,7 +1872,7 @@ local function ToggleFrames(frame,action)
     LFMPlus:RefreshResults()
   end
 
-  if (not db.enabled) or action == "hide" then
+  if (not LFMPDB.global.enabled) or action == "hide" then
     LFMPlusFrame:Hide()
     LFMPlus:ClearValues()
     for k, _ in pairs(LFMPlusFrame.frames.all) do
@@ -1878,7 +1886,7 @@ local options = {
   name = L["LFMPlus"],
   desc = L["LFMPlus"],
   get = function(info)
-    return db[info.arg]
+    return LFMPDB.global[info.arg]
   end,
   args = {
     enabled = {
@@ -1888,7 +1896,7 @@ local options = {
       order = 1,
       arg = "enabled",
       set = function(info,v)
-        db[info.arg] = v
+        LFMPDB.global[info.arg] = v
         if v then
           LFMPlus:Enable()
         else
@@ -1904,14 +1912,14 @@ local options = {
       descStyle = "inline",
       order = 10,
       get = function(info)
-        return db[info.arg]
+        return LFMPDB.global[info.arg]
       end,
       set = function(info,v)
-        db[info.arg] = v
+        LFMPDB.global[info.arg] = v
         LFMPlus:RefreshResults()
       end,
       disabled = function()
-        return not db.enabled
+        return not LFMPDB.global.enabled
       end,
       args = {
         showLeaderScore = {
@@ -1926,7 +1934,7 @@ local options = {
         showLeaderScoreDesc = {
           type = "description",
           width = "full",
-          name = "         " .. LFMPlus:formatMPlusRating(2200, true, true) .. " " .. NORMAL_FONT_COLOR:WrapTextInColorCode("19 PF LUST"),
+          name = "         ",
           fontSize = "medium",
           order = 11
         },
@@ -1946,7 +1954,7 @@ local options = {
           },
           sorting = {"def", "bar", "dot", "icon"},
           set = function(info,v)
-            db[info.arg] = v
+            LFMPDB.global[info.arg] = v
             LFMPlus:RefreshResults()
           end,
           order = 30
@@ -1959,7 +1967,7 @@ local options = {
           descStyle = "inline",
           arg = "showPartyLeader",
           set = function(info,v)
-            db[info.arg] = v
+            LFMPDB.global[info.arg] = v
             LFMPlus:RefreshResults()
           end,
           order = 30
@@ -1972,9 +1980,9 @@ local options = {
           descStyle = "inline",
           arg = "showRealmName",
           set = function(info,v)
-            db[info.arg] = v
-            if v and not db.shortenActivityName then
-              db.shortenActivityName = true
+            LFMPDB.global[info.arg] = v
+            if v and not LFMPDB.global.shortenActivityName then
+              LFMPDB.global.shortenActivityName = true
             end
             LFMPlus:RefreshResults()
           end,
@@ -2007,14 +2015,14 @@ local options = {
       descStyle = "inline",
       order = 20,
       get = function(info)
-        return db[info.arg]
+        return LFMPDB.global[info.arg]
       end,
       set = function(info,v)
-        db[info.arg] = v
+        LFMPDB.global[info.arg] = v
         LFMPlus:RefreshResults()
       end,
       disabled = function()
-        return not db.enabled
+        return not LFMPDB.global.enabled
       end,
       args = {
         lfgListingDoubleClick = {
@@ -2084,9 +2092,9 @@ local options = {
               desc = L["Toggle the ability to indicate if the realm of an LFG listing or applicant is listed below."],
               arg = "flagRealm",
               set = function(info,v)
-                db[info.arg] = v
+                LFMPDB.global[info.arg] = v
                 if v then
-                  db.filterRealm = not v
+                  LFMPDB.global.filterRealm = not v
                 end
               end,
               order = 10
@@ -2099,9 +2107,9 @@ local options = {
               desc = L["Toggle the ability to filter out LFG listings or applicants if they belong to a realm listed below."],
               arg = "filterRealm",
               set = function(info,v)
-                db[info.arg] = v
+                LFMPDB.global[info.arg] = v
                 if v then
-                  db.flagRealm = not v
+                  LFMPDB.global.flagRealm = not v
                 end
                 LFMPlus:RefreshResults()
               end,
@@ -2115,23 +2123,23 @@ local options = {
               desc = L["Realms selected below will be selected for filtering/flagging"],
               values = function()
                 local rtnVal = {}
-                for k, _ in pairs(db.flagRealmList) do
+                for k, _ in pairs(LFMPDB.global.flagRealmList) do
                   rtnVal[k] = k
                 end
                 return rtnVal
               end,
               get = function(info,key)
-                return db[info.arg][key]
+                return LFMPDB.global[info.arg][key]
               end,
               set = function(info,value)
-                db[info.arg][value] = not db[info.arg][value]
+                LFMPDB.global[info.arg][value] = not LFMPDB.global[info.arg][value]
                 local newTbl = {}
-                for k, v in pairs(db[info.arg]) do
+                for k, v in pairs(LFMPDB.global[info.arg]) do
                   if (k ~= value) or v then
                     newTbl[k] = v
                   end
                 end
-                db[info.arg] = newTbl
+                LFMPDB.global[info.arg] = newTbl
                 LFMPlus:RefreshResults()
               end,
               arg = "flagRealmList",
@@ -2155,7 +2163,7 @@ local options = {
               end,
               set = function(info,value)
                 if ns.realmFilterPresets[value] then
-                  db[info.arg] = ns.realmFilterPresets[value].realms
+                  LFMPDB.global[info.arg] = ns.realmFilterPresets[value].realms
                 end
                 LFMPlus:RefreshResults()
               end,
@@ -2186,9 +2194,9 @@ local options = {
               desc = L["Toggle the ability to indicate if the player of an LFG listing or applicant is listed below."],
               arg = "flagPlayer",
               set = function(info,v)
-                db[info.arg] = v
+                LFMPDB.global[info.arg] = v
                 if v then
-                  db.filterPlayer = not v
+                  LFMPDB.global.filterPlayer = not v
                 end
                 LFMPlus:RefreshResults()
               end,
@@ -2202,9 +2210,9 @@ local options = {
               desc = L["Toggle the ability to filter out LFG listings or applicants if they belong to a player listed below."],
               arg = "filterPlayer",
               set = function(info,v)
-                db[info.arg] = v
+                LFMPDB.global[info.arg] = v
                 if v then
-                  db.flagPlayer = not v
+                  LFMPDB.global.flagPlayer = not v
                 end
                 LFMPlus:RefreshResults()
               end,
@@ -2218,23 +2226,23 @@ local options = {
               desc = L["Players selected below will be selected for filtering/flagging"],
               values = function()
                 local rtnVal = {}
-                for k, _ in pairs(db.flagPlayerList) do
+                for k, _ in pairs(LFMPDB.global.flagPlayerList) do
                   rtnVal[k] = k
                 end
                 return rtnVal
               end,
               get = function(info,key)
-                return db[info.arg][key]
+                return LFMPDB.global[info.arg][key]
               end,
               set = function(info,value)
-                db[info.arg][value] = not db[info.arg][value]
+                LFMPDB.global[info.arg][value] = not LFMPDB.global[info.arg][value]
                 local newTbl = {}
-                for k, v in pairs(db[info.arg]) do
+                for k, v in pairs(LFMPDB.global[info.arg]) do
                   if (k ~= value) or v then
                     newTbl[k] = v
                   end
                 end
-                db[info.arg] = newTbl
+                LFMPDB.global[info.arg] = newTbl
                 LFMPlus:RefreshResults()
               end,
               arg = "flagPlayerList",
@@ -2248,11 +2256,12 @@ local options = {
 }
 
 function LFMPlus:OnInitialize()
-  ---@type ns.constants.defaults.global
-  db = LibStub("AceDB-3.0"):New(ns.constants.friendlyName .. "DB", ns.constants.defaults, true).global
+  LFMPDB = LFMPDB or {}
+  LFMPlus.Table_UpdateWithDefaults(LFMPDB,ns.constants.defaults)
+  --LFMPDB = LibStub("AceDB-3.0"):New(ns.constants.friendlyName .. "DB", ns.constants.defaults, true)
 
   -- Register options table and slash command
-  LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable(addonName, options, false)
+  LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable(addonName, options, true)
   self:RegisterChatCommand(
     "lfm",
     function()
@@ -2320,7 +2329,7 @@ function LFMPlus:HookScripts()
             v,
             "OnDoubleClick",
             function(s)
-              if db.lfgListingDoubleClick then
+              if LFMPDB.global.lfgListingDoubleClick then
                 if s.isApplication and s.CancelButton:IsShown() then
                   s.CancelButton:Click()
                 else
@@ -2399,7 +2408,7 @@ function LFMPlus:HookScripts()
           LFGListApplicationDialogDescription.EditBox,
           "OnShow",
           function()
-            if db.autoFocusSignUp then
+            if LFMPDB.global.autoFocusSignUp then
               LFGListApplicationDialogDescription.EditBox:SetFocus()
             end
           end
@@ -2409,7 +2418,7 @@ function LFMPlus:HookScripts()
           LFGListApplicationDialogDescription.EditBox,
           "OnEnterPressed",
           function()
-            if db.signupOnEnter then
+            if LFMPDB.global.signupOnEnter then
               LFGListApplicationDialog.SignUpButton:Click()
             end
           end
@@ -2419,7 +2428,7 @@ function LFMPlus:HookScripts()
           LFGListFrame.ApplicationViewer.UnempoweredCover,
           "OnShow",
           function()
-            if db.hideAppViewerOverlay then
+            if LFMPDB.global.hideAppViewerOverlay then
               LFGListFrame.ApplicationViewer.UnempoweredCover:Hide()
             end
           end
@@ -2438,5 +2447,5 @@ end
 function LFMPlus:Disable()
   LFMPlus:UnhookAll()
   ns.FrameHooksRan = false
-  db.enabled = false
+  LFMPDB.global.enabled = false
 end
