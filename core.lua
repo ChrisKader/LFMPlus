@@ -145,12 +145,15 @@ end
 function LFMPlus:formatMPlusRating(rating, short, colored)
   rating = type(rating) == "number" and rating or 0
   local returnString = tostring(rating) or "0"
+  if rating == 0 then
+    return "0"
+  end
 
   if short then
     returnString = string.format(rating >= 1000 and "%.2f%s" or "%.0f%s", rating >= 1000 and rating / 1000 or rating, rating >= 1000 and "k" or "") or returnString
   end
 
-  if colored then
+  if colored and returnString then
     returnString = C_ChallengeMode.GetDungeonScoreRarityColor(rating or 0):WrapTextInColorCode(returnString)
   end
 
@@ -1491,11 +1494,11 @@ local InitializeUI =
 
     function f.scoreMinFrame:SetDisplayValue(value)
       self.noclick = true
-      self:SetValue(value)
-      self.Text:SetText(LFMPlus:formatMPlusRating(value, true, true))
+      self:SetValue(value or 0)
+      self.Text:SetText(LFMPlus:formatMPlusRating(value or 0, true, true))
       self.Text:SetWidth(50)
-      LFMPDB.global.ratingFilterMin = value
-      LFMPDB.global.ratingFilter = value > 0
+      LFMPDB.global.ratingFilterMin = value or 0
+      LFMPDB.global.ratingFilter = (value or 0) > 0
       LFMPlus:RefreshResults()
       self.noclick = false
     end
