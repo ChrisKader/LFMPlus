@@ -33,9 +33,9 @@ ns.constants = {
     ["WKSHP"] = { cmID = 370, aID = 683 },
     ["DOCK"] = { cmID = 169, aID = 180 },
     ["GRIM"] = { cmID = 166, aID = 183 },
-    ["LOWR"] = { cmID = 227, aID = 471 },
+    ["LOWR"] = { cmID = 227, aID = 473 },
     ["JUNK"] = { cmID = 369, aID = 679 },
-    ["UPPR"] = { cmID = 234, aID = 473 },
+    ["UPPR"] = { cmID = 234, aID = 471 },
   },
   timewalk = {
     [459] = { shortName = "EOA" },
