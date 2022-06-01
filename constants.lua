@@ -59,9 +59,9 @@ ns.constants = {
     [370] = { shortName = "WKSHP", activityId = 683 },
     [169] = { shortName = "DOCK", activityId = 180 },
     [166] = { shortName = "GRIM", activityId = 183 },
-    [227] = { shortName = "LOWR", activityId = 471 },
+    [227] = { shortName = "LOWR", activityId = 473 },
     [369] = { shortName = "JUNK", activityId = 679 },
-    [234] = { shortName = "UPPR", activityId = 473 },
+    [234] = { shortName = "UPPR", activityId = 471 },
   },
   trackedEvents = {
     ["LFG_LIST_AVAILABILITY_UPDATE"] = false,
@@ -150,7 +150,7 @@ ns.constants.actvityInfo = {
   [683] = ns.constants.mapInfo[370],
   [180] = ns.constants.mapInfo[169],
   [183] = ns.constants.mapInfo[166],
-  [471] = ns.constants.mapInfo[227],
+  [473] = ns.constants.mapInfo[227],
   [679] = ns.constants.mapInfo[369],
-  [473] = ns.constants.mapInfo[234],
+  [471] = ns.constants.mapInfo[234],
 }
