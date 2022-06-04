@@ -88,7 +88,8 @@
       "PVPUtil",
       "RaiderIO",
       "RED_FONT_COLOR",
-      "StaticPopupSpecial_Show"
+      "StaticPopupSpecial_Show",
+      "DEFAULT_CHAT_FRAME"
     ],
     "Lua.semantic.keyword": true,
     "Lua.hint.enable": true,
