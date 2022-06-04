@@ -1,5 +1,5 @@
-local _, ---@class ns
-ns = ...
+local _,
+ns = ... ---@class ns
 
 ---@class ns.constants
 ns.constants = {
@@ -7,6 +7,11 @@ ns.constants = {
     [1] = "",
     [2] = "Compl",
     [3] = "Time",
+  },
+  roleOrder = {
+    TANK = 1,
+    HEALER = 2,
+    DAMAGER = 3
   },
   friendlyName = "LFMP",
   ratingMin = 0,
@@ -74,7 +79,7 @@ ns.constants = {
     ["LFG_LIST_APPLICANT_UPDATED"] = true,
     ["LFG_LIST_ENTRY_EXPIRED_TOO_MANY_PLAYERS"] = false,
     ["LFG_LIST_ENTRY_EXPIRED_TIMEOUT"] = false,
-    ["LFG_LIST_APPLICATION_STATUS_UPDATED"] = false,
+    ["LFG_LIST_APPLICATION_STATUS_UPDATED"] = true,
     ["LFG_GROUP_DELISTED_LEADERSHIP_CHANGE"] = false,
     ["PLAYER_SPECIALIZATION_CHANGED"] = true,
     ["PARTY_LEADER_CHANGED"] = true,

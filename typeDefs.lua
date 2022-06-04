@@ -1,3 +1,5 @@
+require('../RaiderIO')
+
 --https://github.com/RaiderIO/raiderio-addon/blob/master/core.lua
 ---@class RaiderIO
 RaiderIO = {}
@@ -190,3 +192,84 @@ RaiderIO = {}
 ---@param region string @Optional, will use players own region if ommited. Include to avoid ambiguity during debug mode.
 ---@return DataProviderCharacterProfile @Return value is nil if not found
 function RaiderIO:GetProfile(name, realm, faction, region) end
+
+---@class EnumerateTemplate
+---@field Icon1 Texture
+---@field Icon2 Texture
+---@field Icon3 Texture
+---@field Icon4 Texture
+---@field Icon5 Texture
+---@field Icons table<string,Texture>
+
+---@class PlayerCountTemplate
+---@field Icon Texture
+---@field Count FontString
+
+---@class RoleCountNoScriptsTemplate
+---@field DamagerIcon Texture
+---@field DamagerCount FontString
+---@field HealerIcon Texture
+---@field HealerCount FontString
+---@field TankIcon Texture
+---@field TankCount FontString
+
+---@class LFGListVoiceChatIcon
+---@field Icon Texture
+
+---@class BackgroundFrame : Frame
+---@field Background Texture
+---@field Framing Texture
+
+---@class AnimFrame
+---@field Circle Texture
+---@field Spark Texture
+
+---@class LoadingSpinnerTemplateAnim : AnimationGroup
+---@field AnimFrame Rotation
+
+---@class LoadingSpinnerTemplate
+---@field BackgroundFrame BackgroundFrame
+---@field AnimFrame AnimFrame
+---@field Anim LoadingSpinnerTemplateAnim
+
+---@class LFGListGroupDataDisplayTemplate
+---@field RoleCount RoleCountNoScriptsTemplate
+---@field Enumerate EnumerateTemplate
+---@field PlayerCount PlayerCountTemplate
+
+---@class ButtonText : Button
+
+---@class UIMenuButtonStretchTemplate : Button,UIMenuButtonStretchMixin
+---@field TopLeft Texture
+---@field TopRight Texture
+---@field BottomLeft Texture
+---@field BottomRight Texture
+---@field TopMiddle Texture
+---@field MiddleLeft Texture
+---@field MiddleRight Texture
+---@field BottomMiddle Texture
+---@field MiddleMiddle Texture
+---@field Text ButtonText
+
+---@class LFGListSearchEntryTemplate : Button
+---@field resultID string
+---@field Name FontString
+---@field ResultBG Texture
+---@field ApplicationBG Texture
+---@field ActivityName FontString
+---@field ExpirationTime FontString
+---@field PendingLabel FontString
+---@field Selected Texture
+---@field Highlight Texture
+---@field DataDisplay LFGListGroupDataDisplayTemplate
+---@field VoiceChat LFGListVoiceChatIcon
+---@field Spinner LoadingSpinnerTemplate
+---@field CancelButton UIMenuButtonStretchTemplate
+
+---@param resultID string
+---@param index number|string
+---@return string role
+---@return string class
+---@return string classLocalized
+---@return string specLocalized
+function C_LFGList.GetSearchResultMemberInfo(resultID, index) end

@@ -139,7 +139,7 @@ function LFMPlus:ClearValues()
   LFMPlusFrame.DD.m = 3
 end
 
----@param rating string|number
+---@param rating string|integer
 ---@param short boolean?
 ---@param colored boolean?
 function LFMPlus:formatMPlusRating(rating, short, colored)
@@ -289,11 +289,16 @@ function LFMPlus:GetNameRealm(unit,tempRealm)
   return name, realm
 end
 
+LFMPlus.lastRefresh = 0
 function LFMPlus:RefreshResults()
   if ns.Init then
     if LFGListFrame.activePanel.searching == false then
       if LFGListFrame.SearchPanel:IsShown() then
-        LFGListFrame.SearchPanel.RefreshButton:Click()
+        local now = GetTime()
+        if (now - self.lastRefresh) > 5 then
+          self.lastRefresh = now
+          LFGListFrame.SearchPanel.RefreshButton:Click()
+        end
       end
     elseif LFGListFrame.ApplicationViewer:IsShown() then
       LFGListFrame.ApplicationViewer.RefreshButton:Click()
@@ -360,6 +365,9 @@ local hideTooltip = function()
   end
 end
 
+---@param values table
+---@param val string|integer
+---@return integer index
 local getIndex = function(values,val)
   local index = {}
   for k, v in pairs(values) do
@@ -370,7 +378,7 @@ end
 
 ns.DEBUG_ENABLED = false
 
-local UpdateExpiration = function(btn)
+--[[ local UpdateExpiration = function(btn)
   local duration = 0
   local now = GetTime()
   if (btn.expiration and btn.expiration > now) then
@@ -384,7 +392,7 @@ local UpdateExpiration = function(btn)
   else
     btn.ExpirationTime:SetFormattedText("%.2ds", seconds)
   end
-end
+end ]]
 
 function LFMPlus:GetTooltipInfo(resultID)
   local searchResultInfo = C_LFGList.GetSearchResultInfo(resultID)
@@ -696,183 +704,9 @@ function LFGListSearchEntry_OnEnter(self)
   LFMPlus:SearchEntry_OnEnter(self)
 end
 
-function LFGListSearchEntry_Update(self)
-  local resultID = self.resultID
-  local _, appStatus, pendingStatus, appDuration = C_LFGList.GetApplicationInfo(resultID)
-  local isApplication = (appStatus ~= "none" or pendingStatus)
-  local isAppFinished = LFGListUtil_IsStatusInactive(appStatus) or LFGListUtil_IsStatusInactive(pendingStatus)
-  self.DataDisplay:ClearAllPoints()
-  self.DataDisplay:SetPoint("RIGHT",0,-1)
-  --Update visibility based on whether we're an application or not
-  self.isApplication = isApplication
-  self.ApplicationBG:SetShown(isApplication and not isAppFinished)
-  self.ResultBG:SetShown(not isApplication or isAppFinished)
-  self.DataDisplay:SetShown(not isApplication)
-  self.CancelButton:SetShown(isApplication and pendingStatus ~= "applied")
-  self.CancelButton:SetEnabled(LFGListUtil_IsAppEmpowered())
-  self.CancelButton.Icon:SetDesaturated(not LFGListUtil_IsAppEmpowered())
-  self.CancelButton.tooltip = (not LFGListUtil_IsAppEmpowered()) and LFG_LIST_APP_UNEMPOWERED
-  self.Spinner:SetShown(pendingStatus == "applied")
-  local thisIndicator = self.indicator
-
-  if (not thisIndicator) then
-    local newIndicator = self:CreateTexture (nil, "overlay")
-    newIndicator:SetDrawLayer("OVERLAY", 7)
-    newIndicator:SetSize (10, 10)
-    self.indicator = newIndicator
-    thisIndicator = newIndicator
-  end
-
-  thisIndicator:Show()
-  thisIndicator:SetTexCoord (0, 1, 0, 1)
-  thisIndicator:SetVertexColor (1, 1, 1)
-  thisIndicator:SetDesaturated (false)
-  thisIndicator:SetSize (12, 12)
-  thisIndicator:SetScale (1)
-
-  if pendingStatus == "applied" and C_LFGList.GetRoleCheckInfo() then
-    self.PendingLabel:SetText(LFG_LIST_ROLE_CHECK)
-    self.PendingLabel:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
-    self.PendingLabel:Show()
-    self.ExpirationTime:Hide()
-    self.CancelButton:Hide()
-  elseif pendingStatus == "cancelled" or appStatus == "cancelled" or appStatus == "failed" then
-    self.PendingLabel:SetText(LFG_LIST_APP_CANCELLED)
-    self.PendingLabel:SetTextColor(RED_FONT_COLOR.r, RED_FONT_COLOR.g, RED_FONT_COLOR.b)
-    self.PendingLabel:Show()
-    self.ExpirationTime:Hide()
-    self.CancelButton:Hide()
-  elseif appStatus == "declined" or appStatus == "declined_full" or appStatus == "declined_delisted" then
-    self.PendingLabel:SetText((appStatus == "declined_full") and LFG_LIST_APP_FULL or LFG_LIST_APP_DECLINED)
-    self.PendingLabel:SetTextColor(RED_FONT_COLOR.r, RED_FONT_COLOR.g, RED_FONT_COLOR.b)
-    self.PendingLabel:Show()
-    self.ExpirationTime:Hide()
-    self.CancelButton:Hide()
-  elseif appStatus == "timedout" then
-    self.PendingLabel:SetText(LFG_LIST_APP_TIMED_OUT)
-    self.PendingLabel:SetTextColor(RED_FONT_COLOR.r, RED_FONT_COLOR.g, RED_FONT_COLOR.b)
-    self.PendingLabel:Show()
-    self.ExpirationTime:Hide()
-    self.CancelButton:Hide()
-  elseif appStatus == "invited" then
-    self.PendingLabel:SetText(LFG_LIST_APP_INVITED)
-    self.PendingLabel:SetTextColor(GREEN_FONT_COLOR.r, GREEN_FONT_COLOR.g, GREEN_FONT_COLOR.b)
-    self.PendingLabel:Show()
-    self.ExpirationTime:Hide()
-    self.CancelButton:Hide()
-  elseif appStatus == "inviteaccepted" then
-    self.PendingLabel:SetText(LFG_LIST_APP_INVITE_ACCEPTED)
-    self.PendingLabel:SetTextColor(GREEN_FONT_COLOR.r, GREEN_FONT_COLOR.g, GREEN_FONT_COLOR.b)
-    self.PendingLabel:Show()
-    self.ExpirationTime:Hide()
-    self.CancelButton:Hide()
-  elseif appStatus == "invitedeclined" then
-    self.PendingLabel:SetText(LFG_LIST_APP_INVITE_DECLINED)
-    self.PendingLabel:SetTextColor(RED_FONT_COLOR.r, RED_FONT_COLOR.g, RED_FONT_COLOR.b)
-    self.PendingLabel:Show()
-    self.ExpirationTime:Hide()
-    self.CancelButton:Hide()
-  elseif isApplication and pendingStatus ~= "applied" then
-    self.PendingLabel:SetText(LFG_LIST_PENDING)
-    self.PendingLabel:SetTextColor(GREEN_FONT_COLOR.r, GREEN_FONT_COLOR.g, GREEN_FONT_COLOR.b)
-    self.PendingLabel:Show()
-    self.ExpirationTime:Show()
-    self.CancelButton:Show()
-  else
-    self.PendingLabel:Hide()
-    self.ExpirationTime:Hide()
-    self.CancelButton:Hide()
-  end
-  self.ExpirationTime:ClearAllPoints()
-  self.ExpirationTime:SetPoint("RIGHT", -35, -1)
-  --Center justify if we're on more than one line
-  if self.PendingLabel:GetHeight() > 15 then
-    self.PendingLabel:SetJustifyH("CENTER")
-  else
-    self.PendingLabel:SetJustifyH("RIGHT")
-  end
-
-  --Change the anchor of the label depending on whether we have the expiration time
-  if self.ExpirationTime:IsShown() then
-    self.PendingLabel:SetPoint("RIGHT", self.ExpirationTime, "LEFT", -3, 0)
-  else
-    self.PendingLabel:SetPoint("RIGHT", self.ExpirationTime, "RIGHT", -3, 0)
-  end
-
-  self.expiration = GetTime() + appDuration
-
-  local panel = self:GetParent():GetParent():GetParent()
-
-  local searchResultInfo = C_LFGList.GetSearchResultInfo(resultID)
-  thisIndicator:Hide()
-  if UnitFactionGroup("player") ~= PLAYER_FACTION_GROUP[searchResultInfo.leaderFactionGroup] then
-    local factionString = FACTION_STRINGS[searchResultInfo.leaderFactionGroup];
-    thisIndicator:SetTexture ([[Interface\PVPFrame\PVP-Currency-]] .. factionString)
-    thisIndicator:SetPoint("LEFT",self.Name,"RIGHT")
-    thisIndicator:Show()
-  end
-
-  local activityID = searchResultInfo.activityID
-  local name = searchResultInfo.name
-  local voiceChat = searchResultInfo.voiceChat
-  local isDelisted = searchResultInfo.isDelisted
-  local activityName = C_LFGList.GetActivityFullName(activityID, nil, searchResultInfo.isWarMode)
-  local activityInfo = C_LFGList.GetActivityInfoTable(searchResultInfo.activityID, nil, searchResultInfo.isWarMode)
-  --self.infoName = PremadeFilter_GetInfoName(activityID, name)
-  self.resultID = resultID
-  self.Selected:SetShown(panel.selectedResult == resultID and not isApplication and not isDelisted)
-  self.Highlight:SetShown(panel.selectedResult ~= resultID and not isApplication and not isDelisted)
-  local nameColor = NORMAL_FONT_COLOR
-  local activityColor = GRAY_FONT_COLOR
-  if isDelisted or isAppFinished then
-    nameColor = LFG_LIST_DELISTED_FONT_COLOR
-    activityColor = LFG_LIST_DELISTED_FONT_COLOR
-  elseif searchResultInfo.numBNetFriends > 0 or searchResultInfo.numCharFriends > 0 or searchResultInfo.numGuildMates > 0 then
-    nameColor = BATTLENET_FONT_COLOR
-  elseif self.fresh then
-    nameColor = LFG_LIST_FRESH_FONT_COLOR
-  end
-
-  self.Name:SetWidth(0)
-
-  self.Name:SetText(name)
-  self.Name:SetTextColor(nameColor.r, nameColor.g, nameColor.b)
-  self.ActivityName:SetText(activityName)
-  self.ActivityName:SetTextColor(activityColor.r, activityColor.g, activityColor.b)
-  self.VoiceChat:SetShown(voiceChat ~= "")
-  self.VoiceChat.tooltip = voiceChat
-
-  local displayData = C_LFGList.GetSearchResultMemberCounts(resultID)
-  LFGListGroupDataDisplay_Update(self.DataDisplay, activityID, displayData, isDelisted)
-
-  local nameWidth = isApplication and 165 or 176
-  if voiceChat ~= "" then
-    nameWidth = nameWidth - 22
-  end
-  if self.Name:GetWidth() > nameWidth then
-    self.Name:SetWidth(nameWidth)
-  end
-  self.ActivityName:SetWidth(nameWidth)
-
-  local mouseFocus = GetMouseFocus()
-  if mouseFocus == self then
-    LFGListSearchEntry_OnEnter(self)
-  end
-  if mouseFocus == self.VoiceChat then
-    mouseFocus:GetScript("OnEnter")(mouseFocus)
-  end
-
-  if isApplication then
-    self:SetScript("OnUpdate", LFGListSearchEntry_UpdateExpiration)
-    LFGListSearchEntry_UpdateExpiration(self)
-  else
-    self:SetScript("OnUpdate", nil)
-  end
-
-  if self.DataDisplay.Enumerate.leader then
-    self.DataDisplay.Enumerate.leader:Hide()
-  end
-
+---@param self LFGListSearchEntryTemplate
+local function LFGListSearchEntry_Update_Post(self)
+  ---Hide any shown created icons/textures we create.
   for i = 1, 5 do
     local icon = self.DataDisplay.Enumerate["Icon" .. i]
     if (icon) then
@@ -884,93 +718,157 @@ function LFGListSearchEntry_Update(self)
     end
   end
 
-  if LFMPDB.global.enabled and (activityInfo.isMythicPlusActivity or activityInfo.displayType == Enum.LfgListDisplayType.RoleEnumerate) then
-    local playstyleString = GREEN_FONT_COLOR:WrapTextInColorCode(ns.constants.playStyleString[searchResultInfo.playstyle] or "")
-    local numMembers = searchResultInfo.numMembers
-    local orderIndexes = {}
+  local resultID = self.resultID
+  local searchResultInfo = C_LFGList.GetSearchResultInfo(resultID)
+  local activityInfo = C_LFGList.GetActivityInfoTable(searchResultInfo.activityID)
+
+  if LFMPDB.global.enabled and activityInfo.isMythicPlusActivity then
+    local _, appStatus, pendingStatus, appDuration = C_LFGList.GetApplicationInfo(resultID)
+    local isApplication = (appStatus ~= "none" or pendingStatus)
+    local isAppFinished = LFGListUtil_IsStatusInactive(appStatus) or LFGListUtil_IsStatusInactive(pendingStatus)
+
+    if not self.factionIcon then
+      self.factionIcon = self:CreateTexture (nil, "overlay")
+      self.factionIcon:SetDrawLayer("OVERLAY", 7)
+      self.factionIcon:SetTexCoord (0, 1, 0, 1)
+      self.factionIcon:SetVertexColor (1, 1, 1)
+      self.factionIcon:SetDesaturated (false)
+      self.factionIcon:SetSize (12, 12)
+      self.factionIcon:SetScale (1)
+    end
+    self.factionIcon:Hide()
+
+    if UnitFactionGroup("player") ~= PLAYER_FACTION_GROUP[searchResultInfo.leaderFactionGroup] then
+      local factionString = FACTION_STRINGS[searchResultInfo.leaderFactionGroup];
+      self.factionIcon:SetTexture ([[Interface\PVPFrame\PVP-Currency-]] .. factionString)
+      self.factionIcon:SetPoint("LEFT",self.Name,"RIGHT")
+      self.factionIcon:Show()
+    end
+
+    if LFMPDB.global.showLeaderScore and not searchResultInfo.isDelisted and activityInfo.isMythicPlusActivity then
+      local formattedLeaderScore = LFMPlus:formatMPlusRating(searchResultInfo.leaderOverallDungeonScore or 0, true, true)
+      local listingName = self.Name:GetText()
+      local nameText = string.format("%s %s", formattedLeaderScore, listingName)
+      self.Name:SetText(nameText)
+      self.ActivityName:SetWordWrap(false)
+    end
+
+    ---@type Frame
+    local dataDisplayEnum = self.DataDisplay.Enumerate
+
+    if not dataDisplayEnum.leaderIcon then
+      dataDisplayEnum.leaderIcon = dataDisplayEnum:CreateTexture("$parentLeaderIcon", "OVERLAY")
+      dataDisplayEnum.leaderIcon:SetSize(10, 5)
+      dataDisplayEnum.leaderIcon:SetAtlas("groupfinder-icon-leader", false, "LINEAR")
+    end
+
+    dataDisplayEnum.leaderIcon:Hide()
 
     self.ExpirationTime:ClearAllPoints()
     self.ExpirationTime:SetPoint("BOTTOMRIGHT", self.DataDisplay.Enumerate.Icon5, "BOTTOMLEFT", 0, 0)
     self.ExpirationTime:SetJustifyH("RIGHT")
+
     if (self.ExpirationTime:IsShown()) then
       self.PendingLabel:SetText("")
     end
 
+    local UpdateExpiration = function()
+      local duration = 0
+      local now = GetTime()
+      if (self.expiration and self.expiration > now) then
+        duration = self.expiration - now
+      end
+
+      local minutes = math.floor(duration / 60)
+      local seconds = duration % 60
+      if minutes > 1 then
+        self.ExpirationTime:SetFormattedText("%dm", minutes)
+      else
+        self.ExpirationTime:SetFormattedText("%.2ds", seconds)
+      end
+    end
+
     if isApplication then
       self:SetScript("OnUpdate", UpdateExpiration)
-      UpdateExpiration(self)
+      UpdateExpiration()
     else
       self:SetScript("OnUpdate", nil)
     end
 
+    local numMembers = searchResultInfo.numMembers
+
+    ---@type table<integer,{orderIndex: integer, class: string, leader: boolean, role: string}>
+    local groupMemberInfo = {}
+
     for i = 1, numMembers do
-      local role, class = C_LFGList.GetSearchResultMemberInfo(resultID, i)
-      local leader = i == 1 or false
-      local orderIndex = getIndex(LFG_LIST_GROUP_DATA_ROLE_ORDER, role)
-      -- Insert the orderIndex of the role (Tank, Healer, DPS) along with the class, group leader indicator and role.
-      table.insert(orderIndexes, {orderIndex, class, leader, role})
+      ---@return string,string
+      local role, class, _, _ = C_LFGList.GetSearchResultMemberInfo(resultID, i)
+      local memberInfo = {
+        orderIndex = ns.constants.roleOrder[role],
+        class = class,
+        leader = i == 1,
+        role = role
+      }
+      table.insert(groupMemberInfo,memberInfo)
     end
 
     -- Sort the table by order index placing Tanks over Healers over DPS.
     table.sort(
-      orderIndexes,
+      groupMemberInfo,
       function(a,b)
-        return a[1] < b[1]
+        return a.orderIndex < b.orderIndex
       end
     )
 
-    local dataDisplayEnum = self.DataDisplay.Enumerate
-    -- Process each member of the group.
     for i = 1, numMembers do
       -- Icon Frames go right to left where group member 1 is Icon5 and group member 5 is Icon1.
       -- To account for this, we do some simple math to get the Icon frame for the group member we are currently working with.
-      local iconNumber = (5 - i) + 1
-      local class = orderIndexes[i][2]
+      local currentIconNumber = (5 - i) + 1
+      local currentClass = groupMemberInfo[i].class
 
       -- The role icons we use match for TANK and HEALER but not for DPS.
-      local roleName = orderIndexes[i][4] == "DAMAGER" and "DPS" or orderIndexes[i][4]
-      local classColor = RAID_CLASS_COLORS[class]
+      local roleName = groupMemberInfo[i].role == "DAMAGER" and "DPS" or groupMemberInfo[i].role
+      local classColor = RAID_CLASS_COLORS[currentClass]
       local r, g, b, _ = classColor:GetRGBA()
 
-      local iconFrame = dataDisplayEnum["Icon" .. iconNumber]
+      local iconFrame = dataDisplayEnum["Icon" .. currentIconNumber]
+      if not iconFrame then
+        return
+      end
       iconFrame:SetSize(18, 18)
 
-      for _, v in ipairs(ns.constants.searchEntryFrames) do
-        if iconFrame[v] then
-          iconFrame[v]:Hide()
-        end
+      if not iconFrame.classDot then
+        iconFrame.classDot = CreateFrame("Frame", dataDisplayEnum["ClassDot" .. currentIconNumber], dataDisplayEnum)
+        iconFrame.classDot:SetFrameLevel(dataDisplayEnum:GetFrameLevel())
+        iconFrame.classDot:SetPoint("CENTER", iconFrame)
+        iconFrame.classDot:SetSize(18, 18)
+        iconFrame.classDot.tex = iconFrame.classDot:CreateTexture(dataDisplayEnum["ClassDot" .. currentIconNumber .. "Tex"], "ARTWORK")
+        iconFrame.classDot.tex:SetAllPoints(iconFrame.classDot)
+        iconFrame.classDot.tex:SetTexture([[Interface\AddOns\LFM+\Textures\Circle_Smooth_Border]])
       end
+      iconFrame.classDot:Hide()
+
+      if not iconFrame.roleIcon then
+        iconFrame.roleIcon = dataDisplayEnum:CreateTexture(dataDisplayEnum["RoleIcon" .. currentIconNumber], "OVERLAY")
+        iconFrame.roleIcon:SetSize(10, 10)
+        iconFrame.roleIcon:SetPoint("TOP", iconFrame, "CENTER", -1, -3)
+      end
+      iconFrame.roleIcon:SetAtlas("roleicon-tiny-" .. string.lower(roleName))
+      iconFrame.roleIcon:Hide()
+
+      if not iconFrame.classBar then
+        ---@type Texture
+        iconFrame.classBar = dataDisplayEnum:CreateTexture(dataDisplayEnum["ClassBar" .. currentIconNumber], "ARTWORK")
+        iconFrame.classBar:SetSize(10, 3)
+        iconFrame.classBar:SetPoint("TOP", iconFrame, "BOTTOM")
+      end
+      iconFrame.classBar:Hide()
 
       -- dot - Displays a sphere colored to the class behind a smaller role icon in the same position as the default UI.
       -- icon - Displays an icon for the class in the same position as the default UI with a small role (if tank or healer) attached to the bottom of the icon.
       if LFMPDB.global.classRoleDisplay == "dot" or LFMPDB.global.classRoleDisplay == "icon" then
-        -- Create and configure the frame needed.
-
-        if not iconFrame.classDot then
-          local f = CreateFrame("Frame", dataDisplayEnum["ClassDot" .. iconNumber], dataDisplayEnum)
-          f:SetFrameLevel(dataDisplayEnum:GetFrameLevel())
-          f:SetPoint("CENTER", iconFrame)
-          f:SetSize(18, 18)
-
-          f.tex = f:CreateTexture(dataDisplayEnum["ClassDot" .. iconNumber .. "Tex"], "ARTWORK")
-          f.tex:SetAllPoints(f)
-
-          f.tex:SetTexture([[Interface\AddOns\LFM+\Textures\Circle_Smooth_Border]])
-          f:Hide()
-          iconFrame.classDot = f
-        end
-
-        if not iconFrame.roleIcon then
-          ---@type Texture
-          local f = dataDisplayEnum:CreateTexture(dataDisplayEnum["RoleIcon" .. iconNumber], "OVERLAY")
-          f:SetSize(10, 10)
-          f:SetPoint("TOP", iconFrame, "CENTER", -1, -3)
-          f:Hide()
-          iconFrame.roleIcon = f
-        end
 
         iconFrame.roleIcon:SetAtlas("roleicon-tiny-" .. string.lower(roleName))
-
         if LFMPDB.global.classRoleDisplay == "dot" then
           iconFrame:Hide()
           iconFrame.classDot.tex:SetVertexColor(r, g, b, 1)
@@ -978,64 +876,25 @@ function LFGListSearchEntry_Update(self)
           iconFrame.roleIcon:SetPoint("TOP", iconFrame, "CENTER", 0, 5)
         elseif LFMPDB.global.classRoleDisplay == "icon" then
           iconFrame.roleIcon:SetPoint("TOP", iconFrame, "CENTER", -1, -3)
-          iconFrame:SetAtlas("groupfinder-icon-class-" .. string.lower(class))
+          iconFrame:SetAtlas("groupfinder-icon-class-" .. string.lower(currentClass))
         end
-
         iconFrame.roleIcon:Show()
       elseif LFMPDB.global.classRoleDisplay == "bar" then
-        -- Ensure the display is set to default settings.
-        if not iconFrame.classBar then
-          ---@type Texture
-          local f = dataDisplayEnum:CreateTexture(dataDisplayEnum["ClassBar" .. iconNumber], "ARTWORK")
-          f:SetSize(10, 3)
-          f:SetPoint("TOP", iconFrame, "BOTTOM")
-          f:Hide()
-          iconFrame.classBar = f
-        end
         iconFrame.classBar:SetColorTexture(r, g, b, 1)
         iconFrame.classBar:Show()
       elseif LFMPDB.global.classRoleDisplay == "def" then
         iconFrame:SetSize(18, 18)
-        for _, v in ipairs(ns.constants.searchEntryFrames) do
-          if iconFrame[v] then
-            iconFrame[v]:Hide()
-          end
-        end
       end
 
       -- Displays a crown attached to the top of the leaders role icon.
-      if LFMPDB.global.showPartyLeader == true then
-        if not dataDisplayEnum.leader then
-          local f = dataDisplayEnum:CreateTexture(dataDisplayEnum["LeaderIcon"], "OVERLAY")
-          f:SetSize(10, 5)
-          f:SetPoint("BOTTOM", iconFrame, "TOP", 0, 0)
-          f:SetAtlas("groupfinder-icon-leader", false, "LINEAR")
-          f:Hide()
-          dataDisplayEnum.leader = f
-        end
-
-        if orderIndexes[i][3] then
-          dataDisplayEnum.leader:SetPoint("BOTTOM", iconFrame, "TOP", 0, 0)
-          dataDisplayEnum.leader:Show()
+      if LFMPDB.global.showPartyLeader then
+        if groupMemberInfo[i].leader then
+          dataDisplayEnum.leaderIcon:ClearAllPoints()
+          dataDisplayEnum.leaderIcon:SetPoint("BOTTOM", iconFrame, "TOP", 0, 0)
+          dataDisplayEnum.leaderIcon:Show()
         end
       else
-        if dataDisplayEnum.leader then
-          dataDisplayEnum.leader:Hide()
-        end
-      end
-    end
-
-    -- Hide any new member icons that may have been created but do not need to be shown for the current group.
-    if numMembers < 5 then
-      for i = numMembers + 1, 5 do
-        local icon = dataDisplayEnum["Icon" .. ((5 - i) + 1)]
-        if (icon) then
-          for _, v in ipairs(ns.constants.searchEntryFrames) do
-            if icon[v] then
-              icon[v]:Hide()
-            end
-          end
-        end
+        dataDisplayEnum.leaderIcon:Hide()
       end
     end
 
@@ -1047,18 +906,12 @@ function LFGListSearchEntry_Update(self)
       end
     end
 
-    if LFMPDB.global.showLeaderScore and not searchResultInfo.isDelisted and LFMPlusFrame.dungeonList[searchResultInfo.activityID] then
-      local formattedLeaderScore = LFMPlus:formatMPlusRating(searchResultInfo.leaderOverallDungeonScore or 0, true, true)
-      self.Name:SetText(formattedLeaderScore .. " " .. self.Name:GetText())
-      self.ActivityName:SetWordWrap(false)
-    end
-
-    if LFMPDB.global.shortenActivityName and ns.constants.actvityInfo[searchResultInfo.activityID] then
+    if LFMPDB.global.shortenActivityName and ns.constants.actvityInfo[searchResultInfo.activityID] and activityInfo.isMythicPlusActivity then
       self.ActivityName:SetText(ns.constants.actvityInfo[searchResultInfo.activityID].shortName .. " (M+)")
       self.ActivityName:SetWordWrap(false)
     end
 
-    if LFMPDB.global.showRealmName and LFMPlusFrame.dungeonList[searchResultInfo.activityID] then
+    if LFMPDB.global.showRealmName and activityInfo.isMythicPlusActivity then
       local leaderName, realmName = LFMPlus:GetNameRealm(searchResultInfo.leaderName)
       if (leaderName) then
         if realmName then
@@ -1072,18 +925,18 @@ function LFGListSearchEntry_Update(self)
         end
         if realmName then
           local activityName = self.ActivityName:GetText() .. " " .. realmName
-          thisIndicator:SetTexture ([[Interface\PVPFrame\PVP-Currency-Alliance]])
-          thisIndicator:SetTexCoord (4/32, 29/32, 2/32, 30/32)
-          self.ActivityName:SetText(self.ActivityName:GetText() .. " " .. realmName)
+          self.ActivityName:SetText(activityName)
           self.ActivityName:SetWordWrap(false)
         end
       end
     end
-    if searchResultInfo.playstyle > 1 then
-      self.ActivityName:SetText(self.ActivityName:GetText() .. "/" .. playstyleString)
-    end
+  else
+    self.DataDisplay:ClearAllPoints()
+    self.DataDisplay:SetPoint("RIGHT",self.DataDisplay:GetParent(),"RIGHT",0,-1)
   end
 end
+
+hooksecurefunc('LFGListSearchEntry_Update',LFGListSearchEntry_Update_Post)
 
 function LFGListSearchPanel_UpdateResults(self)
   local offset = HybridScrollFrame_GetOffset(self.ScrollFrame)
@@ -1406,11 +1259,60 @@ function LFGListApplicationViewer_UpdateResultList(self)
   LFGListApplicationViewer_UpdateAvailability(self)
 end
 
-function LFMPlus:EventHandler(event,...)
+LFMPlusFrame:SetScript("OnEvent",function(self,event,...)
+  if ( event == "LFG_LIST_APPLICATION_STATUS_UPDATED" ) then
+		local searchResultID, newStatus, oldStatus, kstringGroupName = ...;
+		local chatMessage = LFGListFrame_GetChatMessageForSearchStatusChange(newStatus);
+    local searchResultInfo = C_LFGList.GetSearchResultInfo(searchResultID)
+    local activityInfo = C_LFGList.GetActivityInfoTable(searchResultInfo.activityID)
+    --TODO: Handle 'applied', 'cancelled' and 'invited' statuses
+		if ( chatMessage and activityInfo.isMythicPlusActivity) then
+      local chatFormatString = "%s: Listing: '%s' (%s) - Status: %s."
+      local lfmHeader = GREEN_FONT_COLOR:WrapTextInColorCode("LFM+")
+      local groupName = YELLOW_FONT_COLOR:WrapTextInColorCode(kstringGroupName)
+      local reason = "Unknown"
+      if newStatus == "declined" then
+        reason = "Declined"
+      elseif newStatus == "declined_full" then
+        reason = "Filled"
+      elseif newStatus == "declined_delisted" then
+        reason = "Delisted"
+      else
+        reason = "Expired"
+      end
+      reason = newStatus == "declined" and RED_FONT_COLOR:WrapTextInColorCode(newStatus) or YELLOW_FONT_COLOR:WrapTextInColorCode(reason)
+
+      local activtyShortName = ns.constants.actvityInfo[searchResultInfo.activityID] and string.format("%s (M+)",ns.constants.actvityInfo[searchResultInfo.activityID].shortName) or activityInfo.fullName
+      local defaultChatMessage = chatMessage:format(kstringGroupName)
+      local newMessage = chatFormatString:format(lfmHeader, groupName, activtyShortName, reason)
+
+      local messageFound = false
+      local function ShouldChangeToDeleted(message, r, g, b, ...)
+        if not messageFound and message == defaultChatMessage then
+          messageFound = true
+          return true
+        end
+      end
+
+      local function TransformFunction(message,r,g,b,...)
+        return newMessage
+      end
+
+      DEFAULT_CHAT_FRAME:TransformMessages(ShouldChangeToDeleted, TransformFunction)
+      --DEFAULT_CHAT_FRAME:AddMessage(chatFormatString:format(lfmHeader, groupName, activityInfo.fullName, reason), nil, nil, nil, 1);
+			--ChatFrame_DisplaySystemMessageInPrimary(chatFormatString:format(kstringGroupName,activityInfo.fullName,reason));
+		end
+	end
+end)
+
+function LFMPlusFrame:RegisterEvents()
+  self:RegisterEvent('LFG_LIST_APPLICATION_STATUS_UPDATED')
+  print('Registered LFG_LIST_APPLICATION_STATUS_UPDATED')
 end
 
-local InitializeUI =
-  function()
+
+
+local InitializeUI = function()
   do
     local f = LFMPlusFrame
     f:SetPoint("BOTTOMRIGHT", GroupFinderFrame, "TOPRIGHT")
@@ -1876,12 +1778,6 @@ local InitializeUI =
   end
 
   LFMPlusFrame:Layout()
-  -- Register Events
-  for k, v in pairs(ns.constants.trackedEvents) do
-    if v then
-      LFMPlus:RegisterEvent(k, LFMPlus.EventHandler)
-    end
-  end
   for k, v in pairs(LFMPlusFrame.frames.search) do
     LFMPlusFrame.frames.all[k] = v
   end
@@ -1889,6 +1785,8 @@ local InitializeUI =
   for k, v in pairs(LFMPlusFrame.frames.app) do
     LFMPlusFrame.frames.all[k] = v
   end
+
+  LFMPlusFrame:RegisterEvents()
 end
 
 local function ToggleFrames(frame,action)
