@@ -1,4 +1,5 @@
-<Ui xmlns="http://www.blizzard.com/wow/ui/">
+
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ UI.xsd">
     <Script file="libs\LibStub\LibStub.lua"/>
     <Script file="libs\CallbackHandler-1.0\CallbackHandler-1.0.lua"/>
     <Include file="libs\AceAddon-3.0\AceAddon-3.0.xml"/>
@@ -13,24 +14,220 @@
     <Script file="libs\LibDropDownExtension-1.0\LibDropDownExtension.lua"/>
     <Script file="constants.lua"/>
     <Script file="locale\Locale-enUS.lua"/>
-    <Slider name="LFMPlusSliderTemplate" enableMouse="true" virtual="true" inherits="HorizontalSliderTemplate" obeyStepOnDrag="true" minValue="0" maxValue="4000" valueStep="100">
-      <KeyValues>
-        <KeyValue key="bottomPadding" value="13" type="number"/>
-        <KeyValue key="layoutIndex" value="3" type="number"/>
-        <KeyValue key="leftPadding" value="35" type="number"/>
-        <KeyValue key="rightPadding" value="15" type="number"/>
-        <KeyValue key="topPadding" value="32" type="number"/>
-      </KeyValues>
+    <Script file="LFMPlus.lua"/>
+    <Frame name="LFMPlusFrame" parent="LFGListFrame" inherits="ManagedHorizontalLayoutFrameTemplate" useParentLevel="true">
+      <Anchors>
+        <Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT"/>
+      </Anchors>
+      <Frames>
+        <Frame parentKey="Header" inherits="DialogHeaderTemplate">
+          <Scripts>
+            <OnLoad>
+              self.Text:SetText("LFM+")
+              self:SetWidth(80)
+            </OnLoad>
+          </Scripts>
+        </Frame>
+        <Frame parentKey="Border" inherits="DialogBorderTemplate"/>
+        <Slider parentKey="RatingSlider" inherits="HorizontalSliderTemplate" obeyStepOnDrag="true" valueStep="100">
+          <Size x="125" y="15"></Size>
+          <KeyValues>
+            <KeyValue key="bottomPadding" value="13" type="number"/>
+            <KeyValue key="layoutIndex" value="3" type="number"/>
+            <KeyValue key="leftPadding" value="35" type="number"/>
+            <KeyValue key="rightPadding" value="15" type="number"/>
+            <KeyValue key="topPadding" value="32" type="number"/>
+          </KeyValues>
+          <Layers>
+            <Layer level="ARTWORK">
+              <FontString parentKey="Text" text="0" font="GameFontNormal">
+                <Size x="25" y="12"/>
+                <Anchors>
+                  <Anchor point="TOP" relativeKey="$parent.Thumb" relativePoint="BOTTOM" x="0" y="7"/>
+                </Anchors>
+              </FontString>
+            </Layer>
+          </Layers>
+          <Scripts>
+            <OnLoad function="LFMPlusFrameRatingSlider_OnLoad"/>
+            <OnValueChanged function="LFMPlusFrameRatingSlider_OnValueChanged"/>
+          </Scripts>
+        </Slider>
+        <ScrollFrame parentKey="ScrollFrame" name="LFMPlusSearchPanelScrollFrame" inherits="HybridScrollFrameTemplate">
+          <Anchors>
+            <Anchor point="TOPLEFT" relativeKey="LFGListFrame.SearchPanel.ResultsInset" x="1" y="-3"/>
+            <Anchor point="BOTTOMRIGHT" relativeKey="$LFGListFrame.SearchPanel.ResultsInset" x="-4" y="3"/>
+          </Anchors>
+          <Layers>
+            <Layer level="ARTWORK">
+              <FontString parentKey="NoResultsFound" inherits="GameFontDisable" text="LFG_LIST_NO_RESULTS_FOUND">
+                <Size x="240" y="0"/>
+                <Anchors>
+                  <Anchor point="TOP" x="0" y="-40"/>
+                </Anchors>
+              </FontString>
+            </Layer>
+          </Layers>
+          <Frames>
+            <Button parentKey="StartGroupButton" inherits="UIPanelButtonTemplate" text="START_A_GROUP" motionScriptsWhileDisabled="true">
+              <Size x="135" y="22"/>
+              <Anchors>
+                <Anchor point="TOP" relativeKey="$parent.NoResultsFound" relativePoint="BOTTOM" x="0" y="-20"/>
+              </Anchors>
+              <Scripts>
+                <OnClick function="LFGListSearchPanel_CreateGroupInstead"/>
+                <OnEnter>
+                  if ( self.tooltip ) then
+                    GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+                    GameTooltip:SetText(self.tooltip, NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, 1, true);
+                    GameTooltip:Show();
+                  end
+                </OnEnter>
+                <OnLeave function="GameTooltip_Hide"/>
+              </Scripts>
+            </Button>
+            <Slider name="$parentScrollBar" inherits="HybridScrollBarTrimTemplate" parentKey="scrollBar">
+              <Anchors>
+                <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="4" y="-13"/>
+                <Anchor point="BOTTOMLEFT" relativePoint="BOTTOMRIGHT" x="4" y="12"/>
+              </Anchors>
+              <Scripts>
+                <OnLoad>
+                  self.trackBG:Show();
+                  self.trackBG:SetVertexColor(0, 0, 0, 0.75);
+                </OnLoad>
+              </Scripts>
+            </Slider>
+          </Frames>
+        </ScrollFrame>
+      </Frames>
+      <Scripts>
+        <OnLoad function="LFMPlusFrame_OnLoad"/>
+        <OnEvent function="LFMPlusFrame_OnEvent"/>
+        <OnShow function="LFMPlusFrame_OnShow"/>
+        <OnHide function="LFMPlusFrame_OnHide"/>
+      </Scripts>
+    </Frame>
+    <Button name="LFMPlusSearchEntryTemplate" inherits="LFGListSearchEntryTemplate" virtual="true">
+      <Size x="312" y="36"/>
       <Layers>
-        <Layer level="ARTWORK">
-          <FontString parentKey="Text" text="0" font="GameFontNormal">
-            <Size x="25" y="12"/>
+        <Layer level="BACKGROUND">
+          <Texture parentKey="ResultBG">
             <Anchors>
-              <Anchor point="TOP" relativeKey="$parent.Thumb" relativePoint="BOTTOM" x="0" y="7"/>
+              <Anchor point="TOPLEFT" x="3" y="-2"/>
+              <Anchor point="BOTTOMRIGHT" x="-3" y="0"/>
+            </Anchors>
+            <Color r="1" g="1" b="1" a="0.04"/>
+          </Texture>
+          <Texture parentKey="ApplicationBG" atlas="groupfinder-highlightbar-green" alphaMode="ADD">
+            <Anchors>
+              <Anchor point="TOPLEFT" x="3" y="-2"/>
+              <Anchor point="BOTTOMRIGHT" x="-3" y="0"/>
+            </Anchors>
+          </Texture>
+        </Layer>
+        <Layer level="ARTWORK">
+          <FontString parentKey="Name" inherits="GameFontNormal" justifyH="LEFT" maxLines="1">
+            <Size x="0" y="14"/>
+            <Anchors>
+              <Anchor point="TOPLEFT" x="10" y="-6"/>
+            </Anchors>
+          </FontString>
+          <FontString parentKey="ActivityName" inherits="GameFontDisableSmallLeft">
+            <Size x="0" y="15"/>
+            <Anchors>
+              <Anchor point="BOTTOMLEFT" x="10" y="2"/>
+            </Anchors>
+          </FontString>
+          <FontString parentKey="ExpirationTime" inherits="GameFontGreenSmall" text="(1:77)" justifyH="LEFT">
+            <Size x="35" y="12"/>
+            <Anchors>
+              <Anchor point="RIGHT" x="-35" y="-1"/>
+            </Anchors>
+            <Color r="0.25" g="0.75" b="0.25"/>
+          </FontString>
+          <FontString parentKey="PendingLabel" inherits="GameFontGreenSmall" text="LFG_LIST_PENDING" justifyH="RIGHT">
+            <Size x="70" y="0"/>
+            <Anchors>
+              <Anchor point="RIGHT" relativeKey="$parent.ExpirationTime" relativePoint="LEFT" x="-3" y="-1"/>
             </Anchors>
           </FontString>
         </Layer>
+        <Layer level="OVERLAY">
+          <Texture parentKey="Selected" atlas="groupfinder-highlightbar-yellow" alphaMode="ADD" hidden="true">
+            <Anchors>
+              <Anchor point="TOPLEFT" x="3" y="-3"/>
+              <Anchor point="BOTTOMRIGHT" x="-3" y="-1"/>
+            </Anchors>
+          </Texture>
+        </Layer>
+        <Layer level="HIGHLIGHT">
+          <Texture parentKey="Highlight" atlas="groupfinder-highlightbar-blue" alphaMode="ADD">
+            <Anchors>
+              <Anchor point="TOPLEFT" x="3" y="-3"/>
+              <Anchor point="BOTTOMRIGHT" x="-3" y="-1"/>
+            </Anchors>
+          </Texture>
+        </Layer>
       </Layers>
-    </Slider>
-    <Script file="core.lua"/>
+      <Frames>
+        <Frame parentKey="DataDisplay" inherits="LFGListGroupDataDisplayTemplate">
+          <Anchors>
+            <Anchor point="RIGHT" relativeKey="$parent" relativePoint="RIGHT" x="0" y="-1"/>
+          </Anchors>
+        </Frame>
+        <Button parentKey="VoiceChat" inherits="LFGListVoiceChatIcon">
+          <Anchors>
+            <Anchor point="LEFT" relativeKey="$parent.Name" relativePoint="RIGHT" x="5" y="-1"/>
+          </Anchors>
+          <Scripts>
+            <OnClick>
+              self:GetParent():Click(button);
+            </OnClick>
+          </Scripts>
+        </Button>
+        <Frame parentKey="Spinner" inherits="LoadingSpinnerTemplate" hidden="true">
+          <Anchors>
+            <Anchor point="RIGHT" x="3" y="-1"/>
+          </Anchors>
+        </Frame>
+        <Button parentKey="CancelButton" inherits="UIMenuButtonStretchTemplate" motionScriptsWhileDisabled="true">
+          <Size x="26" y="24"/>
+          <Anchors>
+            <Anchor point="RIGHT" x="-9" y="-1"/>
+          </Anchors>
+          <Layers>
+            <Layer level="ARTWORK">
+              <Texture parentKey="Icon" atlas="groupfinder-icon-redx" useAtlasSize="true">
+                <Anchors>
+                  <Anchor point="CENTER" x="0" y="0"/>
+                </Anchors>
+              </Texture>
+            </Layer>
+          </Layers>
+          <Scripts>
+            <OnClick>
+              PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+              C_LFGList.CancelApplication(self:GetParent().resultID);
+            </OnClick>
+            <OnEnter>
+              if ( self.tooltip ) then
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+                GameTooltip:SetText(self.tooltip);
+                GameTooltip:Show();
+              end
+            </OnEnter>
+            <OnLeave function="GameTooltip_Hide"/>
+          </Scripts>
+          <HighlightTexture file="Interface\Buttons\UI-Common-MouseHilight" alphaMode="ADD"/>
+        </Button>
+      </Frames>
+      <Scripts>
+        <OnLoad function="LFMPlusSearchEntry_OnLoad"/>
+        <OnEvent function="LFMPlusSearchEntry_OnEvent"/>
+        <OnClick function="LFMPlusSearchEntry_OnClick"/>
+        <OnEnter function="LFMPlusSearchEntry_OnEnter"/>
+        <OnLeave function="GameTooltip_Hide"/>
+      </Scripts>
+    </Button>
 </Ui>
