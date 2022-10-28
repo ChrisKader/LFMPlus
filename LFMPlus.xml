@@ -13,7 +13,7 @@
     <Script file="libs\LibDropDownExtension-1.0\LibDropDownExtension.lua"/>
     <Script file="constants.lua"/>
     <Script file="locale\Locale-enUS.lua"/>
-    <Slider name="LFMPlusSliderTemplate" enableMouse="true" virtual="true" inherits="HorizontalSliderTemplate" obeyStepOnDrag="true" minValue="0" maxValue="4000" valueStep="100">
+    <Slider name="LFMPlusSliderTemplate" enableMouse="true" virtual="true" inherits="UISliderTemplate" obeyStepOnDrag="true" minValue="0" maxValue="4000" valueStep="100">
       <KeyValues>
         <KeyValue key="bottomPadding" value="13" type="number"/>
         <KeyValue key="layoutIndex" value="3" type="number"/>

@@ -938,55 +938,6 @@ end
 
 hooksecurefunc('LFGListSearchEntry_Update',LFGListSearchEntry_Update_Post)
 
-function LFGListSearchPanel_UpdateResults(self)
-  local offset = HybridScrollFrame_GetOffset(self.ScrollFrame)
-  local buttons = self.ScrollFrame.buttons
-
-  --If we have an application selected, deselect it.
-  LFGListSearchPanel_ValidateSelected(self)
-
-  local startGroupButton = self.ScrollFrame.ScrollChild.StartGroupButton
-  local noResultsFound = self.ScrollFrame.ScrollChild.NoResultsFound
-
-  if self.searching then
-    self.SearchingSpinner:Show()
-    noResultsFound:Hide()
-    startGroupButton:Hide()
-    for i = 1, #buttons do
-      buttons[i]:Hide()
-    end
-  else
-    self.SearchingSpinner:Hide()
-    local results = self.results
-    --local apps = self.applications
-    local lastVisibleButton
-    for i = 1, #buttons do
-      local button = buttons[i]
-      local idx = i + offset
-      local result = results[idx] --(idx <= #apps) and apps[idx] or results[idx - #apps]
-      if result then
-        --local searchResultInfo = C_LFGList.GetSearchResultInfo(result)
-        button.resultID = result
-        LFGListSearchEntry_Update(button)
-        button:Show()
-        lastVisibleButton = button
-      else
-        button.created = 0
-        button.resultID = nil
-        button.infoName = nil
-        button:Hide()
-      end
-      button:SetScript("OnEnter", LFGListSearchEntry_OnEnter)
-    end
-    local totalHeight = buttons[1]:GetHeight() * #results --(#results + #apps)
-    local showNoResults = (self.totalResults == 0)
-    local showStartGroup = ((self.totalResults == 0) or self.shouldAlwaysShowCreateGroupButton) and not self.searchFailed
-    totalHeight = LFGListSearchPanel_UpdateAdditionalButtons(self, totalHeight, showNoResults, showStartGroup, lastVisibleButton)
-    HybridScrollFrame_Update(self.ScrollFrame, totalHeight, self.ScrollFrame:GetHeight())
-  end
-  LFGListSearchPanel_UpdateButtonStatus(self)
-end
-
 function LFGListSearchPanel_UpdateResultList(self)
   if not self.searching then
     self.totalResults, self.results = C_LFGList.GetFilteredSearchResults()
@@ -1052,28 +1003,7 @@ function LFGListSearchPanel_UpdateResultList(self)
           matches = friendsOrGuild > 0
         end
       end
-      --[[ -- bosses
-        if matches and extraFilters.bosses then
-          local completedEncounters = C_LFGList.GetSearchResultEncounterInfo(resultID)
-          local bossesDefeated = {}
 
-          if type(completedEncounters) == "table" then
-            for i = 1, #completedEncounters do
-              local boss = completedEncounters[i]
-              local shortName = boss:match("^([^%,%-%s]+)")
-              bossesDefeated[shortName] = true
-            end
-          end
-
-          for boss, filterStatus in pairs(extraFilters.bosses) do
-            local shortName = boss:match("^([^%,%-%s]+)")
-            local bossStatus = (type(bossesDefeated[shortName]) == "nil")
-            if bossStatus ~= filterStatus then
-              matches = false
-              break
-            end
-          end
-        end ]]
       if matches then
         numResults = numResults + 1
         newResults[numResults] = resultID
@@ -1088,32 +1018,8 @@ function LFGListSearchPanel_UpdateResultList(self)
   LFGListSearchPanel_UpdateResults(self)
 end
 
-function LFGListSearchPanel_DoSearch(self)
-  local languages = C_LFGList.GetLanguageSearchFilter()
-
-  if LFGListFrame.SearchPanel.ScrollFrame:IsVisible() then
-    HybridScrollFrame_ScrollToIndex(
-      LFGListFrame.SearchPanel.ScrollFrame,
-      1,
-      function(_)
-        return LFGListFrame.SearchPanel.ScrollFrame.buttons[1]:GetHeight()
-      end
-    )
-  end
-  C_LFGList.Search(self.categoryID, self.filters, self.preferredFilters, languages)
-
-  self.searching = true
-  self.searchFailed = false
-  self.selectedResult = nil
-
-  LFGListSearchPanel_UpdateResultList(self)
-end
-
 function LFGListApplicationDialog_Show(self, resultID)
 	local searchResultInfo = C_LFGList.GetSearchResultInfo(resultID);
-	--[[ if ( searchResultInfo.activityID ~= self.activityID ) then
-		C_LFGList.ClearApplicationTextFields();
-	end ]]
 
 	self.resultID = resultID;
 	self.activityID = searchResultInfo.activityID;
@@ -2254,7 +2160,7 @@ function LFMPlus:HookScripts()
       PVEFrame,
       "OnShow",
       function()
-        for _, v in pairs(LFGListFrame.SearchPanel.ScrollFrame.buttons) do
+        --[[ for _, v in pairs(LFGListFrame.SearchPanel.ScrollFrame.buttons) do
           LFMPlus:HookScript(
             v,
             "OnDoubleClick",
@@ -2268,7 +2174,7 @@ function LFMPlus:HookScripts()
               end
             end
           )
-        end
+        end ]]
 
         LFMPlus:SecureHookScript(LFGListFrame.SearchPanel,"OnShow",function()
           if LFGListFrame.CategorySelection.selectedCategory == 2 then
