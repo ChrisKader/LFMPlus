@@ -252,7 +252,7 @@ function RaiderIO:GetProfile(name, realm, faction, region) end
 ---@field Text ButtonText
 
 ---@class LFGListSearchEntryTemplate : Button
----@field resultID string
+---@field resultID number
 ---@field Name FontString
 ---@field ResultBG Texture
 ---@field ApplicationBG Texture
