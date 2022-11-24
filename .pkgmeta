@@ -29,6 +29,7 @@ ignore:
   - CONTRIBUTING.md
   - CHANGELOG.md
   - typeDefs.lua
+  - release.sh
 
 move-folders:
   LFMPlus/libs/LibUIDropDownMenu/LibUIDropDownMenu: LFMPlus/libs/LibUIDropDownMenu
