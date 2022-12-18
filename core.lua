@@ -606,7 +606,10 @@ function LFMPlus:SearchEntry_OnEnter(s)
     -- add last season score if present
     if leaderProfile and leaderProfile.mythicKeystoneProfile and leaderProfile.mythicKeystoneProfile.mplusPrevious then
       local pastScore = leaderProfile.mythicKeystoneProfile.mplusPrevious.score or 0
-      local pastSeason = leaderProfile.mythicKeystoneProfile.mplusPrevious.season + 1 or 0
+      local pastSeason = 0
+      if leaderProfile.mythicKeystoneProfile.mplusPrevious.season then
+          pastSeason = leaderProfile.mythicKeystoneProfile.mplusPrevious.season + 1
+      end
 
       if pastScore > 0 then
           local color = C_ChallengeMode.GetDungeonScoreRarityColor(pastScore) or HIGHLIGHT_FONT_COLOR
