@@ -404,7 +404,17 @@
       "max",
       "abs",
       "CombatLogGetCurrentEventInfo",
-      "SecondsToClock"
+      "SecondsToClock",
+      "select",
+      "print",
+      "pairs",
+      "ipairs",
+      "table",
+      "type",
+      "string",
+      "_G",
+      "tostring",
+      "math"
     ],
     "Lua.codeLens.enable": true,
     "Lua.completion.callSnippet": "Disable",
