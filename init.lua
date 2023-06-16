@@ -73,9 +73,8 @@ C.dungeons = {
   ["ULD"] = { cmID = 403, aID = 1188, shortName = "ULD", },
  }
 
- ---comment
- ---@param activityId integer
- ---@return table|nil
+---@param activityId integer
+---@return { cmID: integer, aID: integer, shortName: string }|nil
 C.activityInfo = function(activityId)
   for _, dungeon in pairs(C.dungeons) do
     if dungeon.aID == activityId then
@@ -83,6 +82,9 @@ C.activityInfo = function(activityId)
     end
   end
 end
+
+---@param challengeModeId integer
+---@return { cmID: integer, aID: integer, shortName: string }|nil
 C.challengeMode = function(challengeModeId)
   for _, dungeon in pairs(C.dungeons) do
     if dungeon.cmID == challengeModeId then

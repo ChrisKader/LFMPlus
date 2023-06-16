@@ -1182,7 +1182,7 @@ end)
 
 function LFMPlusFrame:RegisterEvents()
   self:RegisterEvent('LFG_LIST_APPLICATION_STATUS_UPDATED')
-  print('Registered LFG_LIST_APPLICATION_STATUS_UPDATED')
+  --print('Registered LFG_LIST_APPLICATION_STATUS_UPDATED')
 end
 
 local activeRoleFrame_OnMouseDown = function(self,button)
