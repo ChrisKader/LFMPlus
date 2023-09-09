@@ -1,4 +1,4 @@
-## Interface: 100100
+## Interface: 100107
 ## Title: LFM+
 ## Author: Onlyne
 ## Version: v1.7.1
