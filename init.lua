@@ -71,6 +71,14 @@ C.dungeons = {
   ["NELT"] = { cmID = 404, aID = 1172, shortName = "NELT", },
   ["VP"] = { cmID = 438, aID = 1195, shortName = "VP", },
   ["ULD"] = { cmID = 403, aID = 1188, shortName = "ULD", },
+  ["AD"] = { cmID = 244, aID = 502, shortName = "AD", },
+  ["DHT"] = { cmID = 198, aID = 460, shortName = "DHT", },
+  ["TOTT"] = { cmID = 456, aID = 1274, shortName = "TOTT", },
+  ["EB"] = { cmID = 168, aID = 184, shortName = "EB", },
+  ["WM"] = { cmID = 248, aID = 530, shortName = "WM", },
+  ["BRH"] = { cmID = 199, aID = 463, shortName = "BRH", },
+  ["FALL"] = { cmID = 463, aID = 1250, shortName = "FALL", },
+  ["RISE"] = { cmID = 464, aID = 1248, shortName = "RISE", },
  }
 
  ---comment
@@ -92,11 +100,11 @@ C.challengeMode = function(challengeModeId)
 end
 
 C.timewalk = {
-  [459] = { shortName = "EOA" },
-  [460] = { shortName = "DHT" },
-  [462] = { shortName = "NL" },
-  [464] = { shortName = "VOTW" },
-  [463] = { shortName = "BRH" },
+  --[459] = { shortName = "EOA" },
+  --[460] = { shortName = "DHT" },
+  --[462] = { shortName = "NL" },
+  --[464] = { shortName = "VOTW" },
+  --[463] = { shortName = "BRH" },
   --[466] = { shortName = "COS" },
 }
 
@@ -170,7 +178,15 @@ C.defaults = {
       [466] = "COS",
       [461] = "HOV",
       [1192] = "TJS",
-      [1176] = "RLP"
+      [1176] = "RLP",
+      [502] = "AD",
+      [460] = "DHT",
+      [1274] = "TOTT",
+      [184] = "EB",
+      [530] = "WM",
+      [463] = "BRH",
+      [1250] = "FALL",
+      [1248] = "RISE",
     }
   }
 }
