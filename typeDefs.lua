@@ -189,11 +189,13 @@ RaiderIO = {}
 ---@param name string
 ---@param realm string
 ---@param faction number
----@param region string @Optional, will use players own region if ommited. Include to avoid ambiguity during debug mode.
+---@param region? string @Optional, will use players own region if ommited. Include to avoid ambiguity during debug mode.
 ---@return DataProviderCharacterProfile @Return value is nil if not found
+---@overload fun(unit: UnitId):DataProviderCharacterProfile
+---@overload fun(name: string, faction: number):DataProviderCharacterProfile
 function RaiderIO:GetProfile(name, realm, faction, region) end
 
----@class EnumerateTemplate
+---@class EnumerateTemplate : Frame
 ---@field Icon1 Texture
 ---@field Icon2 Texture
 ---@field Icon3 Texture
@@ -213,7 +215,7 @@ function RaiderIO:GetProfile(name, realm, faction, region) end
 ---@field TankIcon Texture
 ---@field TankCount FontString
 
----@class LFGListVoiceChatIcon
+---@class LFGListVoiceChatIcon : Button
 ---@field Icon Texture
 
 ---@class BackgroundFrame : Frame
@@ -232,14 +234,26 @@ function RaiderIO:GetProfile(name, realm, faction, region) end
 ---@field AnimFrame AnimFrame
 ---@field Anim LoadingSpinnerTemplateAnim
 
----@class LFGListGroupDataDisplayTemplate
+---@class LFGListGroupDataDisplayTemplate : Frame
 ---@field RoleCount RoleCountNoScriptsTemplate
 ---@field Enumerate EnumerateTemplate
 ---@field PlayerCount PlayerCountTemplate
 
 ---@class ButtonText : Button
 
----@class UIMenuButtonStretchTemplate : Button,UIMenuButtonStretchMixin
+---@class UIMenuButtonStretchMixin : Button
+---@field TopLeft Texture
+---@field TopRight Texture
+---@field BottomLeft Texture
+---@field BottomRight Texture
+---@field TopMiddle Texture
+---@field MiddleLeft Texture
+---@field MiddleRight Texture
+---@field BottomMiddle Texture
+---@field MiddleMiddle Texture
+---@field Text ButtonText
+
+---@class UIMenuButtonStretchTemplate : UIMenuButtonStretchMixin
 ---@field TopLeft Texture
 ---@field TopRight Texture
 ---@field BottomLeft Texture
@@ -252,24 +266,593 @@ function RaiderIO:GetProfile(name, realm, faction, region) end
 ---@field Text ButtonText
 
 ---@class LFGListSearchEntryTemplate : Button
+---@field expiration number
 ---@field resultID number
----@field Name FontString
----@field ResultBG Texture
----@field ApplicationBG Texture
 ---@field ActivityName FontString
----@field ExpirationTime FontString
----@field PendingLabel FontString
----@field Selected Texture
----@field Highlight Texture
----@field DataDisplay LFGListGroupDataDisplayTemplate
----@field VoiceChat LFGListVoiceChatIcon
----@field Spinner LoadingSpinnerTemplate
+---@field ApplicationBG Texture
 ---@field CancelButton UIMenuButtonStretchTemplate
+---@field DataDisplay LFGListGroupDataDisplayTemplate
+---@field ExpirationTime FontString
+---@field Highlight Texture
+---@field isApplication boolean
+---@field Name FontString
+---@field PendingLabel FontString
+---@field ResultBG Texture
+---@field Selected Texture
+---@field Spinner LoadingSpinnerTemplate
+---@field VoiceChat LFGListVoiceChatIcon
 
----@param resultID string
+---@param resultID number
 ---@param index number|string
 ---@return string role
 ---@return string class
 ---@return string classLocalized
 ---@return string specLocalized
-function C_LFGList.GetSearchResultMemberInfo(resultID, index) end
+function C_LFGList.GetSearchResultMemberInfo(resultID, index)
+  return "", "", "", ""
+end
+
+---@class ForbiddenFrame : Frame
+
+---commented out because it's not used in the code
+---@param frameType FrameType
+---@param name? string
+---@param parent? any
+---@param template? TemplateType
+---@param id? number
+---@return ForbiddenFrame
+function CreateForbiddenFrame(frameType, name, parent, template, id )
+  return CreateFrame(frameType, name, parent, template, id)
+end
+
+---@class ObjectPoolMixin
+---@field creationFunc fun(self):Frame
+---@field resetterFunc fun(self, newObj: Frame):Frame
+---@field activeObjects table<number, Frame>
+---@field inactiveObjects table<number, Frame>
+---@field numActiveObjects number
+---@field OnLoad fun(creationFunction: fun():Frame, resetterFunction: fun():Frame)
+---@field Acquire fun():Frame
+---@field Release fun(obj: Frame)
+---@field ReleaseAll fun(disallowed: boolean)
+---@field disallowResetIfNew boolean
+---@field SetResetDisallowedIfNew fun()
+---@field EnumerateActive fun():table<number, Frame>
+---@field GetNextActive fun(current: Frame):Frame
+---@field GetNextInactive fun(current: Frame): Frame
+---@field IsActive fun(object: Frame): boolean
+---@field GetNumActive fun():number
+---@field EnumerateInactive fun(): table<number, Frame>
+
+---@param creationFunction fun():Frame
+---@param resetterFunction fun(newObj: Frame):Frame
+---@return ObjectPoolMixin
+function CreateObjectPool(creationFunction, resetterFunction)
+  return CreateFromMixins(ObjectPoolMixin);
+end
+
+---@class FramePoolMixin : ObjectPoolMixin
+---@field frameType FrameType
+---@field parent Frame|nil
+---@field frameTemplate TemplateType
+---@field OnLoad fun(frameType: FrameType, parent?: Frame|string, frameTemplate?: TemplateType, resetterFun: fun(newObj: Frame):Frame, forbidden: boolean, frameInitFunction: fun(frame: Frame))
+---@field GetTemplate fun():TemplateType
+---@class BaseLayoutFrameTemplate : Frame
+
+---@param frameType FrameType
+---@param parent Frame|nil
+---@param frameTemplate TemplateType
+---@param resetterFunc fun(newObj: Frame):Frame
+---@param forbidden boolean
+---@param frameInitFunc fun(frame: Frame)
+---@return FramePoolMixin
+function CreateFramePool(frameType, parent, frameTemplate, resetterFunc, forbidden, frameInitFunc)
+  return CreateFromMixins(FramePoolMixin)
+end
+
+---@class BaseLayoutMixin
+---@field IsLayoutFrame fun():boolean
+---@field IgnoreLayoutIndex fun():boolean
+---@field MarkIgnoreInLayout fun(region, ...)
+---@field AddLayoutChildren fun(layoutChildren: BaseLayoutFrameTemplate, ...)
+---@field GetLayoutChildren fun():table<number, BaseLayoutFrameTemplate>
+---@field GetAdditionalRegions fun()
+---@field Layout fun()
+---@field OnUpdate fun()
+---@field MarkDirty fun()
+---@field MarkClean fun()
+---@field IsDirty fun():boolean
+---@field OnCleaned fun()
+
+---@class LayoutMixin : BaseLayoutMixin
+---@field GetPadding fun():leftPadding: number, rightPadding: number, topPadding: number, bottomPadding: number
+---@field GetChildPadding fun(child):leftPadding: number, rightPadding: number, topPadding: number, bottomPadding: number
+---@field CalculateFrameSize fun(childrenWidth: number, childrenHeight: number, width: number, height: number):width: number, height: number
+
+---@class VerticalLayoutMixin
+---@field LayoutChildren fun(children:BaseLayoutFrameTemplate, expandToWidth: number)
+
+---@class VerticalLayoutFrame : LayoutMixin, VerticalLayoutMixin
+
+---@class HorizontalLayoutMixin
+---@field LayoutChildren fun(children:BaseLayoutFrameTemplate, ignored: boolean, expandToHeight: number)
+
+---@class HorizontalLayoutFrame : BaseLayoutFrameTemplate, LayoutMixin, HorizontalLayoutMixin
+
+---@class ResizeLayoutMixin : BaseLayoutMixin
+---@field IgnoreLayoutIndex fun():boolean
+
+---@class GridLayoutFrameSettings
+---@field layoutChildren Frame[]
+---@field childXPadding number
+---@field childYPadding number
+---@field isHorizontal boolean
+---@field stride number
+---@field layoutFramesGoingRight boolean
+---@field layoutFramesGoingUp boolean
+
+---@class GridLayoutFrameMixin
+---@field Layout fun()
+---@field oldGridSettings GridLayoutFrameSettings
+---@field CacheLayoutSettings fun(layoutChildren:Frame[])
+---@field ShouldUpdateLayout fun(layoutChildren:Frame[]):boolean
+---@field IgnoreLayoutIndex fun():boolean
+
+---@class ResizeLayoutFrame : BaseLayoutFrameTemplate, ResizeLayoutMixin
+---@class GridLayoutFrame : ResizeLayoutFrame, GridLayoutFrameMixin
+
+---@class ManagedLayoutFrameMixin
+---@field templateType TemplateType
+---@field contentFramePool FramePoolMixin
+---@field OnLoad fun()
+---@field SetTemplate fun(frameType: FrameType, template: TemplateType)
+---@field SetContents fun(contents: Frame[])
+---@field EnumerateActive fun():table<number, Frame>
+
+---@class ContentFrameMixin
+---@field SetContent fun(content:Frame)
+
+---@class ManagedVerticalLayoutFrameTemplate : HorizontalLayoutFrame, ManagedLayoutFrameMixin
+---@class ManagedHorizontalLayoutFrameTemplate : HorizontalLayoutFrame, ManagedLayoutFrameMixin
+
+---@class NineSlicePanelTemplate
+
+
+---@class TitleContainerTemplate
+---@field TitleText FontString
+
+---@class DefaultPanelBaseTemplate
+---@field TitleContainer TitleContainerTemplate
+---@field NineSlice NineSlicePanelTemplate
+
+---@class ChallengesDungeonIconFrameTemplate : Frame
+---@field Icon Texture
+---@field HeighestLevel FontString
+
+
+---@alias ScriptTypes ScriptFrame|ScriptType|ScriptButton|ScriptEditBox|ScriptScrollFrame|ScriptSlider|ScriptStatusBar
+
+---@class AceHook-3.0
+---@field Hook fun(self, object:table, method:string, handler:string|function, hookSecure: boolean)
+---@field RawHook fun(self, object:table, method:string, handler:string|function, hookSecure: boolean)
+---@field SecureHook fun(self, object:table, method:string, handler:string|function)\
+---@field SecureRawHook fun(self, object:table, method:string, handler:string|function)
+---@field HookScript fun(self, frame:Frame, script:ScriptTypes, handler:string|function)
+---@field RawHookScript fun(self, frame:Frame, script:ScriptTypes, handler:string|function)
+---@field SecureHookScript fun(self, frame:Frame, script:ScriptTypes, handler:string|function)
+---@field Unhook fun(self, object:table, method:string|function|ScriptTypes)
+---@field UnhookAll fun(self)
+---@field IsHooked fun(self, object:table, method:string):boolean
+
+---@alias RGBRange
+---| 1
+---| 2
+---| 3
+---| 4
+---| 5
+---| 6
+---| 7
+---| 8
+---| 9
+---| 10
+---| 11
+---| 12
+---| 13
+---| 14
+---| 15
+---| 16
+---| 17
+---| 18
+---| 19
+---| 20
+---| 21
+---| 22
+---| 23
+---| 24
+---| 25
+---| 26
+---| 27
+---| 28
+---| 29
+---| 30
+---| 31
+---| 32
+---| 33
+---| 34
+---| 35
+---| 36
+---| 37
+---| 38
+---| 39
+---| 40
+---| 41
+---| 42
+---| 43
+---| 44
+---| 45
+---| 46
+---| 47
+---| 48
+---| 49
+---| 50
+---| 51
+---| 52
+---| 53
+---| 54
+---| 55
+---| 56
+---| 57
+---| 58
+---| 59
+---| 60
+---| 61
+---| 62
+---| 63
+---| 64
+---| 65
+---| 66
+---| 67
+---| 68
+---| 69
+---| 70
+---| 71
+---| 72
+---| 73
+---| 74
+---| 75
+---| 76
+---| 77
+---| 78
+---| 79
+---| 80
+---| 81
+---| 82
+---| 83
+---| 84
+---| 85
+---| 86
+---| 87
+---| 88
+---| 89
+---| 90
+---| 91
+---| 92
+---| 93
+---| 94
+---| 95
+---| 96
+---| 97
+---| 98
+---| 99
+---| 100
+---| 101
+---| 102
+---| 103
+---| 104
+---| 105
+---| 106
+---| 107
+---| 108
+---| 109
+---| 110
+---| 111
+---| 112
+---| 113
+---| 114
+---| 115
+---| 116
+---| 117
+---| 118
+---| 119
+---| 120
+---| 121
+---| 122
+---| 123
+---| 124
+---| 125
+---| 126
+---| 127
+---| 128
+---| 129
+---| 130
+---| 131
+---| 132
+---| 133
+---| 134
+---| 135
+---| 136
+---| 137
+---| 138
+---| 139
+---| 140
+---| 141
+---| 142
+---| 143
+---| 144
+---| 145
+---| 146
+---| 147
+---| 148
+---| 149
+---| 150
+---| 151
+---| 152
+---| 153
+---| 154
+---| 155
+---| 156
+---| 157
+---| 158
+---| 159
+---| 160
+---| 161
+---| 162
+---| 163
+---| 164
+---| 165
+---| 166
+---| 167
+---| 168
+---| 169
+---| 170
+---| 171
+---| 172
+---| 173
+---| 174
+---| 175
+---| 176
+---| 177
+---| 178
+---| 179
+---| 180
+---| 181
+---| 182
+---| 183
+---| 184
+---| 185
+---| 186
+---| 187
+---| 188
+---| 189
+---| 190
+---| 191
+---| 192
+---| 193
+---| 194
+---| 195
+---| 196
+---| 197
+---| 198
+---| 199
+---| 200
+---| 201
+---| 202
+---| 203
+---| 204
+---| 205
+---| 206
+---| 207
+---| 208
+---| 209
+---| 210
+---| 211
+---| 212
+---| 213
+---| 214
+---| 215
+---| 216
+---| 217
+---| 218
+---| 219
+---| 220
+---| 221
+---| 222
+---| 223
+---| 224
+---| 225
+---| 226
+---| 227
+---| 228
+---| 229
+---| 230
+---| 231
+---| 232
+---| 233
+---| 234
+---| 235
+---| 236
+---| 237
+---| 238
+---| 239
+---| 240
+---| 241
+---| 242
+---| 243
+---| 244
+---| 245
+---| 246
+---| 247
+---| 248
+---| 249
+---| 250
+---| 251
+---| 252
+---| 253
+---| 254
+---| 255
+
+---@class NormalTexture : Texture
+---@class PushedTexture : Texture
+---@class DisabledTexture : Texture
+---@class HighlightTexture : Texture
+
+---@class ButtonStyle
+---@field style string
+
+---@class Button
+---@field NormalTexture Texture
+---@field PushedTexture Texture
+---@field DisabledTexture Texture
+---@field HighlightTexture Texture
+---@field ButtonText FontString
+---@field NormalFont Button
+---@field HighlightFont ButtonStyle
+---@field DisabledFont ButtonStyle
+---@field NormalColor ColorInfo
+---@field HighlightColor ColorInfo
+---@field DisabledColor ColorInfo
+---@field PushedTextOffset ColorInfo
+
+---@class DropDownToggleButton : Button
+
+---@class TooltipBackdropTemplate
+---@field layoutType "TooltipDefaultLayout"
+---@field NineSlice NineSlicePanelTemplate
+---@field TooltipBackdropOnLoad fun()
+---@field SetBackdropColor fun(r:RGBRange, g:RGBRange, b:RGBRange, a?:number)
+---@field GetBackdropColor fun(): r:RGBRange,g:RGBRange,b:RGBRange, a:number
+---@field SetBackdropBorderColor fun(r:RGBRange, g:RGBRange, b:RGBRange, a?:number)
+---@field GetBackdropBorderColor fun(): r:RGBRange,g:RGBRange,b:RGBRange, a:number
+---@field SetBorderBlendMode fun(blendMode: Enum.UIWidgetBlendModeType)
+
+---@class ColorSwatchTemplate : Button
+---@field SwitchBg Texture
+---@field InnerBorder Texture
+---@field Color Texture
+
+---@class UIDropDownMenuButtonColorSwatch : BackdropTemplate, ColorSwatchTemplate
+
+---@class L_UIDropDownMenuButtonTemplate : Button
+---@field Hightlight Texture
+---@field Check Texture
+---@field UnCheck Texture
+---@field Icon Texture
+---@field ColorSwatch UIDropDownMenuButtonColorSwatch
+---@field ExpandArrow Texture
+---@field invisibleButton Button
+
+---@class L_UIDropDownListTemplate
+---@field Backdrop BackdropTemplate
+---@field MenuBackdrop TooltipBackdropTemplate
+---@field Button1 L_UIDropDownMenuButtonTemplate
+
+---@class DropDownMenuButtonMixin
+---@field OnEnter fun(...)
+---@field OnLeave fun(...)
+---@field OnMouseDown fun(button: DropDownToggleButton)
+
+---@class UIDropDownMenuButtonScriptTemplate : DropDownToggleButton, DropDownMenuButtonMixin
+
+---@class UIDropDownMenuTemplateButton : DropDownToggleButton, UIDropDownMenuButtonScriptTemplate
+
+---@class L_UIDropDownMenuTemplate : Frame
+---@field Left Texture
+---@field Middle Texture
+---@field Right Texture
+---@field Text FontString
+---@field Icon Texture
+---@field Button UIDropDownMenuButtonScriptTemplate
+
+---@class UIDropDownCustomMenuEntryMixin
+---@field contextData table
+---@field owningButton DropDownToggleButton
+---@field GetPreferredEntryWidth fun():integer
+---@field GetPreferredEntryHeight fun():integer
+---@field OnSetOwningButton fun()
+---@field SetOwningButton fun(button: DropDownToggleButton)
+---@field GetOwningDropdown fun():L_UIDropDownMenuTemplate
+---@field SetContextData fun(contextData: table)
+---@field GetContextData fun():table
+
+---@class UIDropDownCustomMenuEntryTemplate : Frame, UIDropDownCustomMenuEntryMixin
+
+
+---@class UIDropDownMenuButtonTemplate
+---@field text  string @The text of the button
+---@field value any @The value that L_UIDROPDOWNMENU_MENU_VALUE is set to when the button is clicked
+---@field func function @The function that is called when you click the button
+---@field checked nil|boolean, function @Check the button if true or function returns true
+---@field isNotRadio nil|boolean @Check the button uses radial image if false check box image if true
+---@field isTitle nil|boolean @If it's a title the button is disabled and the font color is set to yellow
+---@field disabled nil|boolean @Disable the button and show an invisible button that still traps the mouseover event so menu doesn't time out
+---@field tooltipWhileDisabled nil, 1 @Show the tooltip, even when the button is disabled.
+---@field hasArrow nil|boolean @Show the expand arrow for multilevel menus
+---@field hasColorSwatch nil|boolean @Show color swatch or not, for color selection
+---@field r RGBRange @Red color value of the color swatch (Between 1 and 255)
+---@field g RGBRange @Green color value of the color swatch (Between 1 and 255)
+---@field b RGBRange @Blue color value of the color swatch (Between 1 and 255)
+---@field colorCode string @"|cAARRGGBB" embedded hex value of the button text color. Only used when button is enabled
+---@field swatchFunc function @function called by the color picker on color change
+---@field hasOpacity nil|1 @Show the opacity slider on the colorpicker frame
+---@field opacity number @Percentatge of the opacity, 1.0 is fully shown, 0 is transparent (0.0 - 1.0 )
+---@field opacityFunc function @function called by the opacity slider when you change its value
+---@field cancelFunc fun(previousValues) @function called by the colorpicker when you click the cancel button (it takes the previous values as its argument)
+---@field notClickable nil|1 @Disable the button and color the font white
+---@field notCheckable nil|1 @Shrink the size of the buttons and don't display a check box
+---@field owner Frame @Dropdown frame that "owns" the current dropdownlist
+---@field keepShownOnClick nil|1 @Don't hide the dropdownlist after a button is clicked
+---@field tooltipTitle nil|string @Title of the tooltip shown on mouseover
+---@field tooltipText nil|string @Text of the tooltip shown on mouseover
+---@field tooltipWarning nil|string @Warning-style text of the tooltip shown on mouseover
+---@field tooltipInstruction nil|string @Instruction-style text of the tooltip shown on mouseover
+---@field tooltipOnButton nil|1 @Show the tooltip attached to the button instead of as a Newbie tooltip.
+---@field tooltipBackdropStyle nil|table @Optional Backdrop style of the tooltip shown on mouseover
+---@field justifyH nil|"CENTER" @Justify button text
+---@field arg1 any @This is the first argument used by info.func
+---@field arg2 any @This is the second argument used by info.func
+---@field fontObject FontString @font object replacement for Normal and Highlight
+---@field menuList table @This contains an array of info tables to be displayed as a child menu
+---@field noClickSound nil|1 @Set to 1 to suppress the sound when clicking the button. The sound only plays if .func is set.
+---@field padding nil|number @Number of pixels to pad the text on the right side
+---@field topPadding nil|number @Extra spacing between buttons.
+---@field leftPadding nil|number @Number of pixels to pad the button on the left side
+---@field minWidth nil|number @Minimum width for this line
+---@field customFrame UIDropDownCustomMenuEntryTemplate @Allows this button to be a completely custom frame, should inherit from UIDropDownCustomMenuEntryTemplate and override appropriate methods.
+---@field icon Texture @An icon for the button.
+---@field iconXOffset nil|number @Number of pixels to shift the button's icon to the left or right (positive numbers shift right, negative numbers shift left).
+---@field iconTooltipTitle nil|string @Title of the tooltip shown on icon mouseover
+---@field iconTooltipText nil|string @Text of the tooltip shown on icon mouseover
+---@field iconTooltipBackdropStyle nil|table @Optional Backdrop style of the tooltip shown on icon mouseover
+---@field mouseOverIcon Texture @An override icon when a button is moused over.
+---@field ignoreAsMenuSelection nil|boolean @Never set the menu text/icon to this, even when this button is checked
+---@field registerForRightClick nil|boolean @Register dropdown buttons for right clicks
+
+---@class LibUIDropDownMenu-4.0
+---@field UIDropDownMenu_InitializeHelper fun(self, frame:Frame)
+---@field UIDropDownMenuButton_ShouldShowIconTooltip fun(self):boolean
+---@field Create_UIDropDownMenu fun(self, name: Frame|string|nil, parent: Frame)
+---@field UIDropDownMenu_Initialize fun(self, frame:Frame, initFunction: fun(self, level: number, menuList: table), displayMode: string, level: number, menuList: table)
+---@field UIDropDownMenu_SetInitializeFunction fun(self, frame:Frame, initFunction: fun(self, level: number, menuList: table))
+---@field UIDropDownMenu_SetDisplayMode fun(self, frame:Frame, displayMode: string)
+---@field UIDropDownMenu_SetFrameStrata fun(self, frame:Frame, frameStrata: FrameStrata)
+---@field UIDropDownMenu_RefreshDropDownSize fun(self)
+---@field UIDropDownMenu_StartCounting fun(self, frame: Frame)
+---@field UIDropDownMenu_StopCounting fun(self, frame: Frame)
+---@field UIDropDownMenu_CreateInfo fun(self): {}
+---@field UIDropDownMenu_CreateFrames fun(self, level: number, index: number)
+---@field UIDropDownMenu_AddSeparator fun(self, level: number)
+---@field UIDropDownMenu_AddSpace fun(self, level: number)
+---@field UIDropDownMenu_AddButton fun(info:UIDropDownMenuButtonTemplate, level: number)
+---@field UIDropDownMenu_CheckAddCustomFrame fun(self, button: UIDropDownCustomMenuEntryTemplate, info:UIDropDownMenuButtonTemplate)
+---@field UIDropDownMenu_RegisterCustomFrame fun(self, customFrame: UIDropDownCustomMenuEntryTemplate)
+---@field UIDropDownMenu_GetMaxButtonWidth fun(self):number
