@@ -77,7 +77,7 @@ C.dungeons = {
   ["EB"] = { cmID = 168, aID = 184, shortName = "EB", },
   ["WM"] = { cmID = 248, aID = 530, shortName = "WM", },
   ["BRH"] = { cmID = 199, aID = 463, shortName = "BRH", },
-  ["FALL"] = { cmID = 463, aID = 1250, shortName = "FALL", },
+  ["FALL"] = { cmID = 463, aID = 1247, shortName = "FALL", },
   ["RISE"] = { cmID = 464, aID = 1248, shortName = "RISE", },
  }
 
@@ -185,7 +185,7 @@ C.defaults = {
       [184] = "EB",
       [530] = "WM",
       [463] = "BRH",
-      [1250] = "FALL",
+      [1247] = "FALL",
       [1248] = "RISE",
     }
   }
