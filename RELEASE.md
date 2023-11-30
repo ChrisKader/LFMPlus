@@ -1,3 +1,3 @@
-**[1.7.1](https://github.com/ChrisKader/LFMPlus/releases/tag/v1.7.1)**
-  * Updates for DF Season 2
-  * Code Cleanup
+**[1.7.4](https://github.com/ChrisKader/LFMPlus/releases/tag/v1.7.1)
+  * Updates for DF Season 3
+  * Thanks @tomrus88
